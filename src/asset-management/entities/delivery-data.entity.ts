@@ -20,7 +20,7 @@ export class DeliveryData {
     (assetExchange) => assetExchange.tradingData,
     {
       onDelete: 'CASCADE',
-    }
+    },
   )
   assetExchange: AssetExchange;
 }

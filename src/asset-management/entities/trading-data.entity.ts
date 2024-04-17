@@ -41,7 +41,7 @@ export class TradingData {
     (assetExchange) => assetExchange.tradingData,
     {
       onDelete: 'CASCADE',
-    }
+    },
   )
   assetExchange: AssetExchange;
 }
