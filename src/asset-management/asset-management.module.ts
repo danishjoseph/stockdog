@@ -1,23 +1,20 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AssetExchange } from './entities/asset-exchange.entity';
+import { Asset } from './entities/asset.entity';
+import { DeliveryData } from './entities/delivery-data.entity';
+import { Exchange } from './entities/exchange.entity';
+import { TradingData } from './entities/trading-data.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.getOrThrow('DB_HOST'),
-        port: +configService.getOrThrow('DB_PORT'),
-        username: configService.getOrThrow('DB_USERNAME'),
-        password: configService.getOrThrow('DB_PASSWORD'),
-        database: configService.getOrThrow('DB_NAME'),
-        synchronize: configService.getOrThrow('SYNCHRONIZE'),
-      }),
-      inject: [ConfigService],
-    }),
+    TypeOrmModule.forFeature([
+      Asset,
+      Exchange,
+      AssetExchange,
+      TradingData,
+      DeliveryData,
+    ]),
   ],
   exports: [TypeOrmModule],
 })
