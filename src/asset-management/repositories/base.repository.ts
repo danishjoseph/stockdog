@@ -25,7 +25,7 @@ export abstract class BaseRepository<T> implements DatabaseRepository<T> {
   }
 
   async update(id: string, item: T): Promise<T | null> {
-    const existingItem = await this.repository.findOne(id as FindOneOptions<T>)
+    const existingItem = await this.repository.findOne(id as FindOneOptions<T>);
     if (!existingItem) {
       return null;
     }
@@ -37,7 +37,7 @@ export abstract class BaseRepository<T> implements DatabaseRepository<T> {
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }
-  
+
   createQueryBuilder(alias: string): SelectQueryBuilder<T> {
     return this.repository.createQueryBuilder(alias);
   }
