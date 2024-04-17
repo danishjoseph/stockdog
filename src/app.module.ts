@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { AssetManagementModule } from './asset-management/asset-management.module';
+import { DatabaseModule } from './database.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { AssetManagementModule } from './asset-management/asset-management.modul
       isGlobal: true,
       envFilePath: ['.env'],
     }),
+    DatabaseModule,
     AssetManagementModule,
   ],
   controllers: [AppController],
