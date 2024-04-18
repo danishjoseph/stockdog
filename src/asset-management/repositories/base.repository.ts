@@ -1,4 +1,9 @@
-import { Repository, FindOneOptions, SelectQueryBuilder } from 'typeorm';
+import {
+  Repository,
+  FindOneOptions,
+  SelectQueryBuilder,
+  FindOptionsWhere,
+} from 'typeorm';
 
 export interface DatabaseRepository<T> {
   findAll(): Promise<T[]>;
@@ -18,6 +23,10 @@ export abstract class BaseRepository<T> implements DatabaseRepository<T> {
 
   async findById(id: any): Promise<T | null> {
     return this.repository.findOne(id);
+  }
+
+  async findOneBy(props: FindOptionsWhere<T>): Promise<T | null> {
+    return this.repository.findOneBy(props);
   }
 
   async create(item: T): Promise<T> {
