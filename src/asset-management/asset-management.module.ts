@@ -5,6 +5,13 @@ import { Asset } from './entities/asset.entity';
 import { DeliveryData } from './entities/delivery-data.entity';
 import { Exchange } from './entities/exchange.entity';
 import { TradingData } from './entities/trading-data.entity';
+import {
+  AssetExchangeRepository,
+  AssetRepository,
+  DeliveryDataRepository,
+  TradingDataRepository,
+} from './repositories';
+import { ExchangeService } from './services/exchange.service';
 
 @Module({
   imports: [
@@ -16,6 +23,12 @@ import { TradingData } from './entities/trading-data.entity';
       DeliveryData,
     ]),
   ],
-  exports: [TypeOrmModule],
+  providers: [
+    AssetRepository,
+    AssetExchangeRepository,
+    TradingDataRepository,
+    DeliveryDataRepository,
+  ],
+  exports: [ExchangeService],
 })
 export class AssetManagementModule {}
