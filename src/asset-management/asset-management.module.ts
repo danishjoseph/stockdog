@@ -9,6 +9,7 @@ import {
   AssetExchangeRepository,
   AssetRepository,
   DeliveryDataRepository,
+  ExchangeRepository,
   TradingDataRepository,
 } from './repositories';
 import { ExchangeService } from './services/exchange.service';
@@ -25,9 +26,11 @@ import { ExchangeService } from './services/exchange.service';
   ],
   providers: [
     AssetRepository,
+    ExchangeRepository,
     AssetExchangeRepository,
     TradingDataRepository,
     DeliveryDataRepository,
+    ExchangeService,
   ],
   exports: [ExchangeService],
 })
