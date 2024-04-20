@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { AssetManagementModule } from './asset-management/asset-management.module';
 import { DatabaseModule } from './database.module';
+import { DataSyncModule } from './data-sync/data-sync.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { DatabaseModule } from './database.module';
     }),
     DatabaseModule,
     AssetManagementModule,
+    DataSyncModule,
   ],
   controllers: [AppController],
   providers: [AppService],
