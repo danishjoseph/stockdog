@@ -71,7 +71,10 @@ describe('ExchangeService', () => {
       expect(exchangeRepository.findOneBy).toHaveBeenCalledWith({
         abbreviation,
       });
-      expect(exchangeRepository.create).toHaveBeenCalledWith(newExchange);
+      expect(exchangeRepository.create).toHaveBeenCalledWith({
+        abbreviation,
+        name: 'New Exchange',
+      });
     });
   });
 });
