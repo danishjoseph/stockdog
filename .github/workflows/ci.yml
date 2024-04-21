@@ -24,13 +24,13 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t stockdog:pr-${{ github.event.number }} .
-          docker save stockdog:pr-${{ github.event.number }} > stockdog:pr-${{ github.event.number }}.image.tar
+          docker save stockdog:pr-${{ github.event.number }} > stockdog-pr-${{ github.event.number }}.image.tar
 
       - name: Save Docker image as artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
-          path: stockdog:pr-${{ github.event.number }}.image.tar
+          path: stockdog-pr-${{ github.event.number }}.image.tar
 
   push:
     needs: build
@@ -43,10 +43,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docker-image
-          path: stockdog:pr-${{ github.event.number }}.image.tar
+          path: stockdog-pr-${{ github.event.number }}.image.tar
 
       - name: Load Docker image
-        run: docker load < stockdog:pr-${{ github.event.number }}.image.tar
+        run: docker load < stockdog-pr-${{ github.event.number }}.image.tar
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
