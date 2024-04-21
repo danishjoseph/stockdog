@@ -32,6 +32,21 @@ jobs:
           name: docker-image
           path: stockdog-pr-${{ github.event.number }}.image.tar
 
+      - name: Comment PR
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const artifactUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const message = `:sparkles: **Docker Image Artifact** :sparkles:\n\nYour Docker image artifact can be found at the following location:\n\n:point_right: [Click Here](${artifactUrl}) :point_left:\n\nHappy coding! :rocket:`;
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message,
+            });
+
   push:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
