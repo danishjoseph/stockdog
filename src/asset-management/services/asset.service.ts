@@ -7,7 +7,6 @@ import { AssetDto } from '../dto';
 @Injectable()
 export class AssetService {
   constructor(
-    private readonly logger: Logger = new Logger(AssetService.name),
     private readonly assetRepository: AssetRepository,
     private assetExchangeRepository: AssetExchangeRepository,
   ) {}

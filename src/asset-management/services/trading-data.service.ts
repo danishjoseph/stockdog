@@ -6,13 +6,14 @@ import { validateAndThrowError } from '../utils/validate-dto-error';
 
 @Injectable()
 export class TradingDataService {
-  constructor(
-    private readonly logger: Logger = new Logger(TradingDataService.name),
-    private readonly tradingDataRepository: TradingDataRepository,
-  ) {}
+  constructor(private readonly tradingDataRepository: TradingDataRepository) {}
 
   async findTradingDataById(id: string): Promise<TradingData> {
-    return this.tradingDataRepository.findById(id);
+    const tradingData = await this.tradingDataRepository.findById(id);
+    if (!tradingData) {
+      throw new Error(`Trading data with id ${id} not found`);
+    }
+    return tradingData;
   }
 
   async saveTradingData(tradingData: TradingDataDTO): Promise<TradingData> {

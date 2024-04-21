@@ -6,7 +6,6 @@ import { Exchange as Ex } from '../types/enums';
 @Injectable()
 export class AssetExchangeService {
   constructor(
-    private readonly logger: Logger = new Logger(AssetExchangeService.name),
     private readonly assetExchangeRepository: AssetExchangeRepository,
   ) {}
 

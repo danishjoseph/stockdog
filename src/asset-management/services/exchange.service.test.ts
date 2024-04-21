@@ -31,7 +31,7 @@ describe('ExchangeService', () => {
       const existingExchange = {
         id: 1,
         abbreviation,
-        name: 'Existing Exchange',
+        name: 'National Stock Exchange',
         assetExchanges: [],
       };
 
@@ -53,7 +53,7 @@ describe('ExchangeService', () => {
       const newExchange = {
         id: 1,
         abbreviation,
-        name: 'New Exchange',
+        name: 'National Stock Exchange',
         assetExchanges: [],
       };
 
@@ -68,7 +68,7 @@ describe('ExchangeService', () => {
       });
       expect(exchangeRepository.create).toHaveBeenCalledWith({
         abbreviation,
-        name: 'New Exchange',
+        name: 'National Stock Exchange',
       });
     });
   });

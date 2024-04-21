@@ -1,10 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AssetService } from './asset.service';
-import { AssetRepository } from '../repositories';
+import { AssetRepository, AssetExchangeRepository } from '../repositories';
+import { AssetDto } from '../dto';
+import { Exchange, Asset, AssetExchange } from '../entities';
 
 describe('AssetService', () => {
   let assetService: AssetService;
   let assetRepository: AssetRepository;
+  let assetExchangeRepository: AssetExchangeRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -13,7 +16,15 @@ describe('AssetService', () => {
         {
           provide: AssetRepository,
           useValue: {
-            // Mock any methods you want to test
+            findOneBy: jest.fn(),
+            create: jest.fn(),
+          },
+        },
+        {
+          provide: AssetExchangeRepository,
+          useValue: {
+            findOneBy: jest.fn(),
+            create: jest.fn(),
           },
         },
       ],
@@ -21,9 +32,60 @@ describe('AssetService', () => {
 
     assetService = module.get<AssetService>(AssetService);
     assetRepository = module.get<AssetRepository>(AssetRepository);
+    assetExchangeRepository = module.get<AssetExchangeRepository>(
+      AssetExchangeRepository,
+    );
     expect(assetService).toBeDefined();
     expect(assetRepository).toBeDefined();
   });
 
-  // Add more test cases for other methods in the AssetService class
+  it('should create asset and asset exchange', async () => {
+    const assetData: AssetDto = {
+      isin: 'test-isin',
+      name: 'Test Asset',
+      symbol: 'TST',
+      assetExchangeCode: 'TST123',
+      faceValue: 0,
+      industry: '',
+      sector: '',
+      assetExchanges: [],
+    };
+    const exchange = {
+      id: 1,
+      name: 'Test Exchange',
+      abbreviation: 'TST',
+    } as Exchange;
+    const asset: Asset = { id: 1, ...assetData };
+    const assetExchange: AssetExchange = {
+      id: 1,
+      asset,
+      exchange,
+      tradingData: [],
+      deliveryData: [],
+    };
+
+    assetRepository.findOneBy = jest.fn().mockResolvedValueOnce(null);
+    assetExchangeRepository.findOneBy = jest.fn().mockResolvedValueOnce(null);
+    assetRepository.create = jest
+      .fn()
+      .mockResolvedValueOnce({ id: 1, ...assetData });
+    assetExchangeRepository.create = jest
+      .fn()
+      .mockResolvedValueOnce(assetExchange);
+
+    await assetService.createAsset(assetData, exchange);
+
+    expect(assetRepository.findOneBy).toHaveBeenCalledWith({
+      isin: assetData.isin,
+    });
+    expect(assetExchangeRepository.findOneBy).toHaveBeenCalledWith({
+      asset: { isin: assetData.isin },
+      exchange,
+    });
+    expect(assetRepository.create).toHaveBeenCalledWith(assetData);
+    expect(assetExchangeRepository.create).toHaveBeenCalledWith({
+      asset,
+      exchange,
+    });
+  });
 });

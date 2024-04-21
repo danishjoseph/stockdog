@@ -11,7 +11,11 @@ export class DeliveryDataService {
   ) {}
 
   async findDeliveryDataById(id: string): Promise<DeliveryData> {
-    return this.deliveryDataRepository.findById(id);
+    const deliveryData = await this.deliveryDataRepository.findById(id);
+    if (!deliveryData) {
+      throw new Error(`Delivery data with id ${id} not found`);
+    }
+    return deliveryData;
   }
 
   async saveDeliveryData(deliveryData: DeliveryDataDTO): Promise<DeliveryData> {
