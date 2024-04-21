@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AssetExchange } from './entities/asset-exchange.entity';
 import { Asset } from './entities/asset.entity';
@@ -13,6 +13,12 @@ import {
   TradingDataRepository,
 } from './repositories';
 import { ExchangeService } from './services/exchange.service';
+import {
+  AssetService,
+  DeliveryDataService,
+  TradingDataService,
+  AssetExchangeService,
+} from './services';
 
 @Module({
   imports: [
@@ -25,13 +31,24 @@ import { ExchangeService } from './services/exchange.service';
     ]),
   ],
   providers: [
+    Logger,
     AssetRepository,
     ExchangeRepository,
     AssetExchangeRepository,
     TradingDataRepository,
     DeliveryDataRepository,
     ExchangeService,
+    AssetService,
+    DeliveryDataService,
+    TradingDataService,
+    AssetExchangeService,
   ],
-  exports: [ExchangeService],
+  exports: [
+    ExchangeService,
+    AssetService,
+    DeliveryDataService,
+    TradingDataService,
+    AssetExchangeService,
+  ],
 })
 export class AssetManagementModule {}
