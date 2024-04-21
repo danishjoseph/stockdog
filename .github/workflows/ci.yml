@@ -30,9 +30,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Create .env file
-        run: echo "${{ secrets.ENV }}" | base64 -d > .env
-
       - name: Build and tag Docker image
         run: |
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:pr-${{ github.event.number }} .
