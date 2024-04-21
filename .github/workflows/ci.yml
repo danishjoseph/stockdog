@@ -1,5 +1,9 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +26,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t stockdog:pr-${{ github.event.number }} .
-          docker save stockdog:pr-${{ github.event.number }} . > stockdog:pr-${{ github.event.number }}
+          docker save stockdog:pr-${{ github.event.number }} > stockdog:pr-${{ github.event.number }}.image.tar
 
       - name: Save Docker image as artifact
         uses: actions/upload-artifact@v4
@@ -41,10 +45,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docker-image
-          path: stockdog:pr-${{ github.event.number }}
+          path: stockdog:pr-${{ github.event.number }}.image.tar
 
       - name: Load Docker image
-        run: docker load < stockdog:pr-${{ github.event.number }}
+        run: docker load < stockdog:pr-${{ github.event.number }}.image.tar
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
