@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   test:
+    name: Unit tests & Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +35,7 @@ jobs:
         run: yarn test --colors
 
   build:
+    name: Build Docker image & save to artifact
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,14 +53,6 @@ jobs:
         with:
           name: docker-image
           path: stockdog-pr-${{ github.event.number }}.image.tar
-      
-      - name: Download Docker image from artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-
-      - name: Load Docker image
-        run: docker load < stockdog-pr-${{ github.event.number }}.image.tar
 
   push:
     needs: build
@@ -73,7 +67,9 @@ jobs:
           name: docker-image
 
       - name: Load Docker image
-        run: docker load < stockdog-pr-${{ github.event.number }}.image.tar
+        run: |
+          docker load < stockdog-pr-${{ github.event.number }}.image.tar
+          docker tag stockdog:pr-${{ github.event.number }} stockdog:alpha-${{ github.event.number }}
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -82,12 +78,12 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:pr-${{ github.event.number }}
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:alpha-${{ github.event.number }}
 
       - name: Update image metadata
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:pr-${{ github.event.number }}
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:alpha-${{ github.event.number }}
           tags: |
             type=sha
           labels: |
