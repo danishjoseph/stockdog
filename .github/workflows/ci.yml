@@ -35,7 +35,7 @@ jobs:
         run: yarn test --colors
 
   build-and-push:
-    name: Build & push to DockerHub
+    name: Build Docker image & push to DockerHub
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
