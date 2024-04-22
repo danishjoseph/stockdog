@@ -26,7 +26,7 @@ export class DataSyncService {
     });
     await this.bseService.handleAssetData(response.data);
   }
-  
+
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleDeliveryDataBSE(url: string, userAgent: string, referer: string) {
     this.logger.log('BSE Data Sync Started');
@@ -90,7 +90,9 @@ export class DataSyncService {
       },
     });
 
-    let assetResponseStream = Readable.from(JSON.stringify(assetResponse.data));
+    const assetResponseStream = Readable.from(
+      JSON.stringify(assetResponse.data),
+    );
 
     await this.nseService.handleAssetData(assetResponseStream);
     const tradeResponse = await axios.get(tradingURL, {
@@ -101,7 +103,9 @@ export class DataSyncService {
         Referer: referer,
       },
     });
-    let tradeResponseStream = Readable.from(JSON.stringify(tradeResponse.data));
+    const tradeResponseStream = Readable.from(
+      JSON.stringify(tradeResponse.data),
+    );
 
     await this.nseService.handleTradingData(tradeResponseStream);
   }

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AssetExchangeRepository, AssetRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
 import { Asset, AssetExchange, Exchange } from '../entities';

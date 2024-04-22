@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AssetExchangeRepository } from '../repositories';
 import { Exchange } from '../types/interface';
 import { Exchange as Ex } from '../types/enums';
