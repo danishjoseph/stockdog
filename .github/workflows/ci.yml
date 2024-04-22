@@ -1,4 +1,8 @@
 name: CI
+
+env:
+  NODE_VERSION: 18
+
 on:
   push:
     branches: [main]
@@ -10,7 +14,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,39 +22,35 @@ jobs:
       - name: Set up NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: yarn install
+      - name: Install test dependencies
+        run: yarn install --production=false --only=dev
 
-      - name: Run tests
+      - name: Lint code
+        run: yarn lint
+
+      - name: Run Unit tests
         run: yarn test --colors
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Build Docker image
         run: |
           docker build -t stockdog:pr-${{ github.event.number }} .
-          docker save stockdog:pr-${{ github.event.number }} > stockdog-pr-${{ github.event.number }}.image.tar
 
-      - name: Save Docker image as artifact
+      - name: Save Docker image to artifact
+        if: success() && github.event_name == 'pull_request'
+        run: docker save stockdog:pr-${{ github.event.number }} > stockdog-pr-${{ github.event.number }}.image.tar
+
+      - name: Upload Docker image to artifact
         uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: stockdog-pr-${{ github.event.number }}.image.tar
-
-      - name: Comment PR
-        if: success() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const artifactUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-            const message = `:sparkles: **Docker Image Artifact** :sparkles:\n\nYour Docker image artifact can be found at the following location:\n\n:point_right: [Click Here](${artifactUrl}) :point_left:\n\nHappy coding! :rocket:`;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message,
-            });
 
   push:
     needs: build
@@ -63,7 +63,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docker-image
-          path: stockdog-pr-${{ github.event.number }}.image.tar
 
       - name: Load Docker image
         run: docker load < stockdog-pr-${{ github.event.number }}.image.tar
