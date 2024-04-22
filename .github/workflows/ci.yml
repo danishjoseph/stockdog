@@ -1,0 +1,91 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: yarn test --colors
+
+      - name: Build Docker image
+        run: |
+          docker build -t stockdog:pr-${{ github.event.number }} .
+          docker save stockdog:pr-${{ github.event.number }} > stockdog-pr-${{ github.event.number }}.image.tar
+
+      - name: Save Docker image as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: stockdog-pr-${{ github.event.number }}.image.tar
+
+      - name: Comment PR
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const artifactUrl = `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const message = `:sparkles: **Docker Image Artifact** :sparkles:\n\nYour Docker image artifact can be found at the following location:\n\n:point_right: [Click Here](${artifactUrl}) :point_left:\n\nHappy coding! :rocket:`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message,
+            });
+
+  push:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Docker image from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: stockdog-pr-${{ github.event.number }}.image.tar
+
+      - name: Load Docker image
+        run: docker load < stockdog-pr-${{ github.event.number }}.image.tar
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:pr-${{ github.event.number }}
+
+      - name: Update image metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:pr-${{ github.event.number }}
+          tags: |
+            type=sha
+          labels: |
+            org.opencontainers.image.title=StockDog App
+            org.opencontainers.image.description=Stock market analysis app
+            org.opencontainers.image.url=https://github.com/${{github.repository}}
+            org.opencontainers.image.revision=${{github.sha}}
+            org.opencontainers.image.licenses=MIT
