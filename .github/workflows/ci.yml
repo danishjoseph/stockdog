@@ -51,6 +51,14 @@ jobs:
         with:
           name: docker-image
           path: stockdog-pr-${{ github.event.number }}.image.tar
+      
+      - name: Download Docker image from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+
+      - name: Load Docker image
+        run: docker load < stockdog-pr-${{ github.event.number }}.image.tar
 
   push:
     needs: build
