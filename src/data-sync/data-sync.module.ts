@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AssetManagementModule } from 'src/asset-management/asset-management.module';
 import { DataSyncService } from './data-sync.service';
 import { BseService } from './bse.service';

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TradingDataDTO } from '../dto';
 import { TradingData } from '../entities';
 import { TradingDataRepository } from '../repositories';
