@@ -5,6 +5,7 @@ import { AssetDto, DeliveryDataDTO, TradingDataDTO } from './dto';
 import { CSV_SEPARATOR } from './types/enums/csv';
 import { Exchange } from 'src/asset-management/types/enums';
 import { Stream } from 'stream';
+import { AxiosHeaders } from 'axios';
 
 enum STOCK_DATA_CSV_HEADERS {
   SYMBOL = 'SYMBOL',
@@ -38,6 +39,7 @@ enum DELIVERY_DATA_CSV_HEADERS {
 @Injectable()
 export class NseService {
   constructor(private readonly AM: AssetManagement) {}
+  private logger = new Logger(NseService.name);
 
   async handleAssetData(csvData: Stream) {
     const nseExchange = await this.AM.exchangeService.findOrCreateExchange(
@@ -72,7 +74,7 @@ export class NseService {
       );
       if (!assetExchange) {
         if (['EQ', 'BE', 'SM'].includes(series)) {
-          Logger.warn(
+          this.logger.warn(
             `Asset Details not found for symbol: ${symbol} and series: ${series}`,
           );
         }
@@ -128,13 +130,19 @@ export class NseService {
     const month = ('0' + (date.getMonth() + 1)).slice(-2); // Months are 0-based in JavaScript
     const day = ('0' + date.getDate()).slice(-2);
 
-    return {
-      userAgent:
+    const headers = new AxiosHeaders({
+      Accept: '*/*"',
+      Connection: 'keep-alive',
+      'User-Agent':
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
-      referer:
+      Referer:
         'https://www1.nseindia.com/products/content/equities/equities/archieve_eq.htm',
+    });
+
+    return {
       assetUrl: `https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv`,
       tradingURL: `https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_${day}${month}${year}.csv`,
+      headers,
     };
   }
 }
