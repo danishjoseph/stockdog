@@ -3,6 +3,7 @@ import { DeliveryDataDTO } from '../dto';
 import { DeliveryData } from '../entities';
 import { DeliveryDataRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
+import { InsertResult } from 'typeorm';
 
 @Injectable()
 export class DeliveryDataService {
@@ -18,8 +19,10 @@ export class DeliveryDataService {
     return deliveryData;
   }
 
-  async saveDeliveryData(deliveryData: DeliveryDataDTO): Promise<DeliveryData> {
+  async saveDeliveryData(deliveryData: DeliveryDataDTO): Promise<InsertResult> {
     await validateAndThrowError(deliveryData, 'deliveryDataDTO');
-    return this.deliveryDataRepository.create(deliveryData as DeliveryData);
+    return this.deliveryDataRepository.upsert(deliveryData as DeliveryData, {
+      conflictPaths: { date: true, assetExchange: true },
+    });
   }
 }

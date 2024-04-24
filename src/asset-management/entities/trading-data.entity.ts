@@ -1,7 +1,14 @@
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { AssetExchange } from './asset-exchange.entity';
 
 @Entity()
+@Unique(['date', 'assetExchange'])
 export class TradingData {
   @PrimaryGeneratedColumn()
   id: number;

@@ -13,9 +13,19 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       - stockdog
-
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - '3300:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - stockdog
+    depends_on:
+      - db
 volumes:
   db-data:
+  grafana-storage:
 
 networks:
   stockdog:

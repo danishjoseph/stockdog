@@ -5,6 +5,7 @@ import { AssetDto, DeliveryDataDTO, TradingDataDTO } from './dto';
 import parseCSV from './utils/csv-parser';
 import { Stream } from 'stream';
 import { Exchange } from 'src/asset-management/types/enums';
+import { AxiosHeaders } from 'axios';
 enum STOCK_DATA_CSV_HEADERS {
   SYMBOL = 'Security Id',
   NAME_OF_COMPANY = 'Issuer Name',
@@ -41,6 +42,8 @@ enum DELIVERY_DATA_CSV_HEADERS {
 export class BseService {
   constructor(private readonly AM: AssetManagement) {}
 
+  private logger = new Logger(BseService.name);
+
   async handleAssetData(csvData: Stream) {
     const bseExchange = await this.AM.exchangeService.findOrCreateExchange(
       Exchange.BSE,
@@ -68,14 +71,14 @@ export class BseService {
     );
     const parser = await parseCSV(streamData, CSV_SEPARATOR.PIPE);
     for await (const record of parser) {
-      const assetExchangeCode = record[TRADE_DATA_CSV_HEADERS.SYMBOL];
+      const assetExchangeCode = record[DELIVERY_DATA_CSV_HEADERS.SYMBOL];
       const assetExchange = await this.AM.assetExchangeService.findBySymbol(
         assetExchangeCode,
         bseExchange,
         ['asset'],
       );
       if (!assetExchange) {
-        Logger.warn(
+        this.logger.warn(
           `Asset Details not found for stock: ${
             record[TRADE_DATA_CSV_HEADERS.NAME]
           }`,
@@ -114,7 +117,7 @@ export class BseService {
         ['asset'],
       );
       if (!assetExchange) {
-        Logger.warn(
+        this.logger.warn(
           `Asset Details not found for stock: ${
             record[TRADE_DATA_CSV_HEADERS.NAME]
           } AssetExchangeCode: ${assetExchangeCode}`,
@@ -161,14 +164,18 @@ export class BseService {
     const year = date.getFullYear();
     const month = ('0' + (date.getMonth() + 1)).slice(-2); // Months are 0-based in JavaScript
     const day = ('0' + date.getDate()).slice(-2);
+    const headers = new AxiosHeaders({
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11',
+      Referer: 'https://www.bseindia.com/markets/marketinfo/BhavCopy.aspx',
+      encoding: null,
+    });
 
     return {
-      userAgent:
-        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11',
-      referer: 'https://www.bseindia.com/markets/marketinfo/BhavCopy.aspx',
       assetUrl: `https://api.bseindia.com/BseIndiaAPI/api/LitsOfScripCSVDownload/w?segment=Equity&status=Active&industry=&Group=&Scripcode=`,
       deliveryURL: `https://www.bseindia.com/BSEDATA/gross/${year}/SCBSEALL${day}${month}.zip`,
       tradingURL: `https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_${year}${month}${day}_F_0000.CSV`,
+      headers,
     };
   }
 }

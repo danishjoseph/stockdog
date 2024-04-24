@@ -3,6 +3,7 @@ import { TradingDataDTO } from '../dto';
 import { TradingData } from '../entities';
 import { TradingDataRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
+import { InsertResult } from 'typeorm';
 
 @Injectable()
 export class TradingDataService {
@@ -16,8 +17,10 @@ export class TradingDataService {
     return tradingData;
   }
 
-  async saveTradingData(tradingData: TradingDataDTO): Promise<TradingData> {
+  async saveTradingData(tradingData: TradingDataDTO): Promise<InsertResult> {
     await validateAndThrowError(tradingData, 'TradingDataDTO');
-    return this.tradingDataRepository.create(tradingData as TradingData);
+    return this.tradingDataRepository.upsert(tradingData as TradingData, {
+      conflictPaths: { date: true, assetExchange: true },
+    });
   }
 }
