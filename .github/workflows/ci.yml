@@ -44,7 +44,7 @@ jobs:
 
       - name: Get version number
         id: version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+        run: echo "VERSION=$(cat ./package.json | jq -r '.version')" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
@@ -58,16 +58,3 @@ jobs:
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }}
-
-      - name: Update image metadata
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }}
-          tags: |
-            type=sha
-          labels: |
-            org.opencontainers.image.title=Stockdog App
-            org.opencontainers.image.description=Stock market analysis app
-            org.opencontainers.image.url=https://github.com/${{github.repository}}
-            org.opencontainers.image.revision=${{steps.version.outputs.version}}
-            org.opencontainers.image.licenses=MIT
