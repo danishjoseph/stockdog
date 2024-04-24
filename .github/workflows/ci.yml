@@ -33,9 +33,6 @@ jobs:
 
       - name: Run Unit tests
         run: yarn test --colors
-      
-      - name: log event issue_number
-        run: echo ${{ github.event.number }}
 
   build-and-push:
     name: Build & push to DockerHub
