@@ -44,11 +44,11 @@ jobs:
 
       - name: Get version number
         id: version
-        run: echo "VERSION=$(cat ./package.json | jq -r '.version')" >> $GITHUB_ENV
+        run: echo 'VERSION=$(node -p "require('./package.json').version")' >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version  }} .
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ env.VERSION  }} .
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -57,4 +57,4 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }}
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ env.VERSION }}
