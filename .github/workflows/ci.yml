@@ -33,6 +33,10 @@ jobs:
 
       - name: Run Unit tests
         run: yarn test --colors
+      
+      - name: Get version number
+        id: version
+        run: echo "VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
 
   build-and-push:
     name: Build & push to DockerHub
@@ -44,7 +48,7 @@ jobs:
 
       - name: Get version number
         id: version
-        run: echo 'VERSION=$(node -p "require('./package.json').version")' >> $GITHUB_ENV
+        run: echo "VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
