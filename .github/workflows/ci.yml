@@ -44,11 +44,11 @@ jobs:
 
       - name: Get version number
         id: version
-        run: echo "::set-output name=version::$(git rev-list --count HEAD)"
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:alpha-${{ steps.version.outputs.version  }} .
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version  }} .
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -57,16 +57,16 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:alpha-${{ steps.version.outputs.version }}
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }}
 
       - name: Update image metadata
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:alpha-${{ steps.version.outputs.version }}
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }}
           tags: |
             type=sha
           labels: |
-            org.opencontainers.image.title=StockDog App
+            org.opencontainers.image.title=Stockdog App
             org.opencontainers.image.description=Stock market analysis app
             org.opencontainers.image.url=https://github.com/${{github.repository}}
             org.opencontainers.image.revision=${{steps.version.outputs.version}}
