@@ -1,4 +1,5 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { config } from 'dotenv';
 
 config({ path: '.env' });
@@ -13,6 +14,11 @@ const dataSourceOptions: DataSourceOptions = {
   entities: ['**/*.entity.js'],
   migrations: ['database/migrations/*.js'],
   synchronize: false,
+  migrationsRun: true,
+};
+
+export const typeOrmModuleOptions: TypeOrmModuleOptions = {
+  ...dataSourceOptions,
 };
 
 export default new DataSource(dataSourceOptions);

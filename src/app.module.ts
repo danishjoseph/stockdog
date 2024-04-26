@@ -6,7 +6,7 @@ import { AssetManagementModule } from './asset-management/asset-management.modul
 import { DataSyncModule } from './data-sync/data-sync.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import dataSource from 'database/data-source';
+import { typeOrmModuleOptions } from 'database/data-source';
 
 @Module({
   imports: [
@@ -15,7 +15,9 @@ import dataSource from 'database/data-source';
       isGlobal: true,
       envFilePath: ['.env'],
     }),
-    TypeOrmModule.forRootAsync(dataSource),
+    TypeOrmModule.forRootAsync({
+      useFactory: () => typeOrmModuleOptions,
+    }),
     AssetManagementModule,
     DataSyncModule,
   ],
