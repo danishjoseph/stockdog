@@ -16,8 +16,8 @@ export class DeliveryData {
   @Column({ type: 'date' })
   date: Date;
 
-  @Column({ type: 'int', nullable: true })
-  deliveryQuantity: number;
+  @Column({ type: 'bigint', nullable: true })
+  deliveryQuantity: bigint;
 
   @Column({ type: 'int', nullable: true })
   deliveryPercentage: number;

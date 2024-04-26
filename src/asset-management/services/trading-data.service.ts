@@ -19,8 +19,11 @@ export class TradingDataService {
 
   async saveTradingData(tradingData: TradingDataDTO): Promise<InsertResult> {
     await validateAndThrowError(tradingData, 'TradingDataDTO');
-    return this.tradingDataRepository.upsert(tradingData as TradingData, {
-      conflictPaths: { date: true, assetExchange: true },
-    });
+    return this.tradingDataRepository.upsert(
+      tradingData as unknown as TradingData,
+      {
+        conflictPaths: { date: true, assetExchange: true },
+      },
+    );
   }
 }
