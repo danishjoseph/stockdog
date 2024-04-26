@@ -35,7 +35,7 @@ export class TradingData {
   previousClose: number;
 
   @Column({ type: 'bigint', nullable: false })
-  volume: number;
+  volume: bigint;
 
   @Column({ type: 'float', nullable: false })
   turnover: number;

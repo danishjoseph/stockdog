@@ -21,8 +21,11 @@ export class DeliveryDataService {
 
   async saveDeliveryData(deliveryData: DeliveryDataDTO): Promise<InsertResult> {
     await validateAndThrowError(deliveryData, 'deliveryDataDTO');
-    return this.deliveryDataRepository.upsert(deliveryData as DeliveryData, {
-      conflictPaths: { date: true, assetExchange: true },
-    });
+    return this.deliveryDataRepository.upsert(
+      deliveryData as unknown as DeliveryData,
+      {
+        conflictPaths: { date: true, assetExchange: true },
+      },
+    );
   }
 }
