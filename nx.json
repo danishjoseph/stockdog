@@ -2,11 +2,15 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
   "defaultProject": "backend",
+  "workspaceLayout": {
+    "appsDir": "apps",
+    "libsDir": "libs"
+  },
   "plugins": [
     {
       "plugin": "@nx/eslint/plugin",
       "options": {
-        "targetName": "eslint:lint"
+        "targetName": "lint"
       }
     },
     {
