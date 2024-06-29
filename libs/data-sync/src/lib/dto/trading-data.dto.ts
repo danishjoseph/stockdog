@@ -1,5 +1,5 @@
-import { IsNumber, IsDate } from 'class-validator';
-import { AssetExchange } from '../../asset-management/entities';
+import { AssetExchange } from '@stockdog/asset-management';
+import { IsDate, IsNumber } from 'class-validator';
 
 export class TradingDataDTO {
   @IsDate()

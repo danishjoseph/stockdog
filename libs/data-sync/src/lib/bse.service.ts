@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AssetManagement } from './asset-management.service';
-import { CSV_SEPARATOR } from './types/enums/csv';
-import { AssetDto, DeliveryDataDTO, TradingDataDTO } from './dto';
-import parseCSV from './utils/csv-parser';
-import { Stream } from 'stream';
-import { Exchange } from '../asset-management/types/enums';
+import { Exchange } from '@stockdog/asset-management';
 import { AxiosHeaders } from 'axios';
+import { Stream } from 'stream';
+import { AssetManagement } from './asset-management.service';
+import { AssetDto, DeliveryDataDTO, TradingDataDTO } from './dto';
+import { CSV_SEPARATOR } from './types/enums/csv';
+import parseCSV from './utils/csv-parser';
 enum STOCK_DATA_CSV_HEADERS {
   SYMBOL = 'Security Id',
   NAME_OF_COMPANY = 'Issuer Name',

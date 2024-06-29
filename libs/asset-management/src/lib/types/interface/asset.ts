@@ -1,4 +1,4 @@
-import { AssetExchange } from '../../../asset-management/entities';
+import { AssetExchange } from '../interface/asset-exchange';
 
 export interface Asset {
   id: number;

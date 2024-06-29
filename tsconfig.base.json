@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@stockdog/asset-management": ["libs/asset-management/src/index.ts"],
+      "@stockdog/data-sync": ["libs/data-sync/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

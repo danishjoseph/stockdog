@@ -1,14 +1,15 @@
 import {
-  Repository,
   FindOneOptions,
-  SelectQueryBuilder,
   FindOptionsWhere,
   InsertResult,
+  ObjectLiteral,
+  Repository,
+  SelectQueryBuilder,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { UpsertOptions } from 'typeorm/repository/UpsertOptions';
 
-export interface DatabaseRepository<T> {
+export interface DatabaseRepository<T extends ObjectLiteral> {
   findAll(): Promise<T[]>;
   findById(id: any): Promise<T | null>;
   create(item: T): Promise<T>;
@@ -21,7 +22,9 @@ export interface DatabaseRepository<T> {
   createQueryBuilder(alias: string): SelectQueryBuilder<T>;
 }
 
-export abstract class BaseRepository<T> implements DatabaseRepository<T> {
+export abstract class BaseRepository<T extends ObjectLiteral>
+  implements DatabaseRepository<T>
+{
   constructor(protected readonly repository: Repository<T>) {}
 
   async findAll(): Promise<T[]> {

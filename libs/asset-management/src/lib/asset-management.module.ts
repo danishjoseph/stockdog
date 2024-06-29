@@ -12,13 +12,13 @@ import {
   ExchangeRepository,
   TradingDataRepository,
 } from './repositories';
-import { ExchangeService } from './services/exchange.service';
 import {
+  AssetExchangeService,
   AssetService,
   DeliveryDataService,
   TradingDataService,
-  AssetExchangeService,
 } from './services';
+import { ExchangeService } from './services/exchange.service';
 
 @Module({
   imports: [

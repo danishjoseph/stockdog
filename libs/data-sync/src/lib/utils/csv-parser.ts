@@ -1,4 +1,4 @@
-import csvParser from 'csv-parser';
+import * as csvParser from 'csv-parser';
 
 const parseCSV = async (csvData, separator: string): Promise<any[]> => {
   return new Promise((resolve, reject) => {

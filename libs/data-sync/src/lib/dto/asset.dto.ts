@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber } from 'class-validator';
-import { AssetExchange } from '../../asset-management/entities';
+import { AssetExchange } from '@stockdog/asset-management';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class AssetDto {
   @IsNotEmpty()

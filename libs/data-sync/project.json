@@ -1,0 +1,20 @@
+{
+  "name": "data-sync",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/data-sync/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/data-sync",
+        "tsConfig": "libs/data-sync/tsconfig.lib.json",
+        "packageJson": "libs/data-sync/package.json",
+        "main": "libs/data-sync/src/index.ts",
+        "assets": ["libs/data-sync/*.md"]
+      }
+    }
+  }
+}

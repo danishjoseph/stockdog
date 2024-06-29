@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AssetManagementModule } from '../asset-management/asset-management.module';
-import { DataSyncService } from './data-sync.service';
-import { BseService } from './bse.service';
+import { AssetManagementModule } from '@stockdog/asset-management';
 import { AssetManagement } from './asset-management.service';
+import { BseService } from './bse.service';
+import { DataSyncService } from './data-sync.service';
 import { NseService } from './nse.service';
 import { HttpClient } from './utils/httpClient';
 

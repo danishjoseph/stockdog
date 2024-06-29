@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { AssetManagementModule } from '../asset-management/asset-management.module';
-import { DataSyncModule } from '../data-sync/data-sync.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AssetManagementModule } from '@stockdog/asset-management';
+import { DataSyncModule } from '@stockdog/data-sync';
 import { typeOrmModuleOptions } from '../database/data-source';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [

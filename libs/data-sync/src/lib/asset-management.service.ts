@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AssetExchangeService,
   AssetService,
   DeliveryDataService,
   ExchangeService,
   TradingDataService,
-  AssetExchangeService,
-} from '../asset-management/services';
+} from '@stockdog/asset-management';
 
 @Injectable()
 export class AssetManagement {
