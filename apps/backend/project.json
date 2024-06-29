@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/backend/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "application",
   "tags": [],
   "targets": {
@@ -10,43 +10,16 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/{projectRoot}",
-        "tsConfig": "apps/backend/tsconfig.app.json",
-        "main": "apps/backend/src/main.ts",
-        "assets": ["apps/backend/database/**"]
-      }
-    },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/apps/backend"],
-      "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts",
-        "collectCoverage": true,
-        "passWithNoTests": true
-      },
-      "defaultConfiguration": "development",
-      "configurations": {
-        "development": {
-          "coverageReporters": ["text-summary"]
-        },
-        "production": {
-          "ci": true,
-          "coverageReporters": ["html"]
-        }
+        "tsConfig": "{projectRoot}/tsconfig.app.json",
+        "packageJson": "{projectRoot}/package.json",
+        "main": "{projectRoot}/src/main.ts",
+        "assets": ["{projectRoot}/database/**"]
       }
     },
     "serve": {
       "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "backend:build"
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "backend:build:development"
-        },
-        "production": {
-          "buildTarget": "backend:build:production"
-        }
+        "buildTarget": "{projectName}:build"
       }
     },
     "typeorm-migration-generate": {

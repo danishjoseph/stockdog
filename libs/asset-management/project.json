@@ -1,7 +1,7 @@
 {
   "name": "asset-management",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/asset-management/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "library",
   "tags": [],
   "targets": {
@@ -9,11 +9,11 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/libs/asset-management",
-        "tsConfig": "libs/asset-management/tsconfig.lib.json",
-        "packageJson": "libs/asset-management/package.json",
-        "main": "libs/asset-management/src/index.ts",
-        "assets": ["libs/asset-management/*.md"]
+        "outputPath": "dist/{projectRoot}",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
+        "packageJson": "{projectRoot}/package.json",
+        "main": "{projectRoot}/src/index.ts",
+        "assets": ["{projectRoot}/*.md"]
       }
     }
   }

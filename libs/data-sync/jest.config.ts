@@ -1,5 +1,6 @@
-/* eslint-disable */
-export default {
+import { Config } from '@jest/types';
+
+const config: Config.InitialOptions = {
   displayName: 'data-sync',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
@@ -8,4 +9,7 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/libs/data-sync',
+  coverageReporters: ['text', 'html'],
 };
+
+export default config;
