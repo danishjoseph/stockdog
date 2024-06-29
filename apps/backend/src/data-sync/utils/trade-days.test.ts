@@ -27,7 +27,7 @@ describe('getUtcTradeDays', () => {
   });
 
   it('should return single trade day if start and end dates are the same', () => {
-    const date = getCurrentDate();
+    const date = new Date('2024-01-01');
     const tradeDays = getUtcTradeDays(date, date);
 
     expect(tradeDays).toHaveLength(1);
