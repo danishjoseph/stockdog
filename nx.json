@@ -19,22 +19,5 @@
         "targetName": "test"
       }
     }
-  ],
-  "targetDefaults": {
-    "build": {
-      "executor": "@nx/js:tsc",
-      "cache": true,
-      "dependsOn": ["^build"]
-    },
-    "serve": {
-      "executor": "@nx/js:node",
-      "cache": true,
-      "dependsOn": ["^build"]
-    },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "cache": true,
-      "dependsOn": ["^test"]
-    }
-  }
+  ]
 }

@@ -1,19 +1,16 @@
 {
   "name": "backend",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "{projectRoot}/src",
+  "sourceRoot": "apps/backend/src",
   "projectType": "application",
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/{projectRoot}",
-        "tsConfig": "{projectRoot}/tsconfig.app.json",
-        "packageJson": "{projectRoot}/package.json",
-        "main": "{projectRoot}/src/main.ts",
-        "assets": ["{projectRoot}/database/**"]
+        "webpackConfig": "{projectRoot}/webpack.config.js",
+        "outputPath": "dist/{projectRoot}"
       }
     },
     "serve": {

@@ -1,7 +1,0 @@
-{
-  "name": "@stockdog/asset-management",
-  "version": "0.0.1",
-  "main": "./src/index.js",
-  "typings": "./src/index.d.ts",
-  "private": true
-}
