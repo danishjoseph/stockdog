@@ -16,7 +16,7 @@ import { AppService } from './app.service';
       envFilePath: ['.env'],
     }),
     TypeOrmModule.forRootAsync({
-      useFactory: () => typeOrmModuleOptions,
+      useFactory: () => ({ ...typeOrmModuleOptions, autoLoadEntities: true }),
     }),
     AssetManagementModule,
     DataSyncModule,
