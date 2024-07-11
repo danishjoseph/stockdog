@@ -4,5 +4,6 @@
   "sourceRoot": "libs/data-sync/src",
   "projectType": "library",
   "tags": [],
+  "// targets": "to see all targets run: nx show project data-sync --web",
   "targets": {}
 }

@@ -29,6 +29,17 @@
     "typeorm-migration-revert": {
       "dependsOn": ["build"],
       "command": "npx typeorm migration:revert -d dist/{projectRoot}/src/database/data-source.js"
+    },
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -t {projectName}:latest ."
+    },
+    "docker-run": {
+      "dependsOn": ["docker-build"],
+      "command": "docker run --rm --env-file {projectRoot}/.env -p 3000:3000 -d {projectName}:latest"
+    },
+    "docker-compose-up": {
+      "command": "docker-compose up -d"
     }
   }
 }
