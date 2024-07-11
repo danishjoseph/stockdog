@@ -29,10 +29,10 @@ jobs:
         run: yarn install --production=false --only=dev
 
       - name: Lint code
-        run: yarn lint
+        run: yarn nx run-many -t lint
 
       - name: Run Unit tests
-        run: yarn test --colors
+        run: yarn nx run-many -t test
 
   build-and-push:
     name: Build & push to DockerHub
