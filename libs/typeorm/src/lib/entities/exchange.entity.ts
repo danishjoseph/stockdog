@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { AssetExchange } from './asset-exchange.entity';
 
-@Entity()
+@Entity('exchange')
 @Unique(['name', 'abbreviation'])
 export class Exchange {
   @PrimaryGeneratedColumn()

@@ -10,7 +10,7 @@ import { DeliveryData } from './delivery-data.entity';
 import { Exchange } from './exchange.entity';
 import { TradingData } from './trading-data.entity';
 
-@Entity()
+@Entity('asset_exchange')
 @Unique(['asset', 'exchange'])
 export class AssetExchange {
   @PrimaryGeneratedColumn()
