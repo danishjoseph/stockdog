@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InsertResult } from 'typeorm';
+import { TradingData } from '../../../../typeorm/src/lib/entities';
 import { TradingDataDTO } from '../dto';
-import { TradingData } from '../entities';
 import { TradingDataRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
-import { InsertResult } from 'typeorm';
 
 @Injectable()
 export class TradingDataService {

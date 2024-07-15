@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:13
     env_file:
-      - apps/backend/.env
+      - .env
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

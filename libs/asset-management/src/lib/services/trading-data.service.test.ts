@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TradingDataService } from './trading-data.service';
+import { TradingData } from '../../../../typeorm/src/lib/entities';
 import { TradingDataRepository } from '../repositories';
-import { TradingData } from '../entities';
+import { TradingDataService } from './trading-data.service';
 
 describe('TradingDataService', () => {
   let tradingDataService: TradingDataService;

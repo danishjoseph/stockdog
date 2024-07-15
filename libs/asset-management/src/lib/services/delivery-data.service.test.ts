@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DeliveryDataService } from './delivery-data.service';
+import { DeliveryData } from '../../../../typeorm/src/lib/entities';
 import { DeliveryDataRepository } from '../repositories';
-import { DeliveryData } from '../entities';
+import { DeliveryDataService } from './delivery-data.service';
 
 describe('DeliveryDataService', () => {
   let deliveryDataService: DeliveryDataService;

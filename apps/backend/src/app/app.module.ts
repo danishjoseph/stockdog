@@ -4,20 +4,17 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AssetManagementModule } from '@stockdog/asset-management';
 import { DataSyncModule } from '@stockdog/data-sync';
-import { typeOrmModuleOptions } from '../database/data-source';
+import { typeOrmModuleOptions } from '../../typeorm.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env'],
     }),
-    TypeOrmModule.forRootAsync({
-      useFactory: () => ({ ...typeOrmModuleOptions, autoLoadEntities: true }),
-    }),
+    ScheduleModule.forRoot(),
+    TypeOrmModule.forRoot(typeOrmModuleOptions),
     AssetManagementModule,
     DataSyncModule,
   ],

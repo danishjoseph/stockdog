@@ -1,14 +1,14 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { Asset } from './asset.entity';
+import { DeliveryData } from './delivery-data.entity';
 import { Exchange } from './exchange.entity';
 import { TradingData } from './trading-data.entity';
-import { DeliveryData } from './delivery-data.entity';
 
 @Entity()
 @Unique(['asset', 'exchange'])

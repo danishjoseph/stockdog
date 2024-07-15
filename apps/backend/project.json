@@ -19,27 +19,19 @@
         "buildTarget": "{projectName}:build"
       }
     },
-    "typeorm-migration-generate": {
-      "command": "npx typeorm migration:generate -d dist/{projectRoot}/src/database/data-source.js {projectRoot}/src/database/migrations/{args.name}"
-    },
-    "typeorm-migration-run": {
-      "dependsOn": ["build"],
-      "command": "npx typeorm migration:run -d dist/{projectRoot}/src/database/data-source.js"
-    },
-    "typeorm-migration-revert": {
-      "dependsOn": ["build"],
-      "command": "npx typeorm migration:revert -d dist/{projectRoot}/src/database/data-source.js"
-    },
     "docker-build": {
       "dependsOn": ["build"],
-      "command": "docker build -t {projectName}:latest ."
+      "command": "docker build -f {projectRoot}/Dockerfile -t {projectName}:latest ."
     },
-    "docker-run": {
+    "docker": {
       "dependsOn": ["docker-build"],
-      "command": "docker run --rm --env-file {projectRoot}/.env -p 3000:3000 -d {projectName}:latest"
+      "command": "docker run --rm --env-file {projectRoot}/.env --net=host {projectName}:latest"
     },
-    "docker-compose-up": {
-      "command": "docker-compose up -d"
+    "docker-compose": {
+      "command": "docker-compose up -d",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
     }
   }
 }

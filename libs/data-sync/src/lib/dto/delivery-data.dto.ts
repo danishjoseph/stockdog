@@ -1,4 +1,4 @@
-import { AssetExchange } from '@stockdog/asset-management';
+import { AssetExchange } from '@stockdog/typeorm';
 import { IsDate, IsNumber, IsOptional } from 'class-validator';
 
 export class DeliveryDataDTO {

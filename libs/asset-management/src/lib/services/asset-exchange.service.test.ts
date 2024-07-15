@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AssetExchange } from '../../../../typeorm/src/lib/entities';
 import { AssetExchangeRepository } from '../repositories';
-import { AssetExchangeService } from './asset-exchange.service';
 import { Exchange } from '../types/enums';
-import { AssetExchange } from '../entities';
+import { AssetExchangeService } from './asset-exchange.service';
 
 describe('AssetExchangeService', () => {
   let assetExchangeService: AssetExchangeService;

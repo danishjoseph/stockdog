@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@stockdog/asset-management": ["libs/asset-management/src/index.ts"],
-      "@stockdog/data-sync": ["libs/data-sync/src/index.ts"]
+      "@stockdog/data-sync": ["libs/data-sync/src/index.ts"],
+      "@stockdog/typeorm": ["libs/typeorm/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

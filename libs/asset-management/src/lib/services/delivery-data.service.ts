@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InsertResult } from 'typeorm';
+import { DeliveryData } from '../../../../typeorm/src/lib/entities';
 import { DeliveryDataDTO } from '../dto';
-import { DeliveryData } from '../entities';
 import { DeliveryDataRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
-import { InsertResult } from 'typeorm';
 
 @Injectable()
 export class DeliveryDataService {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { Exchange } from '@stockdog/typeorm';
 import { ExchangeRepository } from '../repositories';
-import { Exchange } from '../entities';
 import { Exchange as Ex } from '../types/enums';
 
 @Injectable()
@@ -17,7 +17,6 @@ export class ExchangeService {
     const existingExchange = await this.exchangeRepository.findOneBy({
       abbreviation,
     });
-
     return (
       existingExchange ||
       this.exchangeRepository.create({ name, abbreviation } as Exchange)

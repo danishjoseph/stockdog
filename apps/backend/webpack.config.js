@@ -10,6 +10,7 @@ module.exports = {
       outputPath: 'dist/apps/backend',
       outputHashing: 'none',
       optimization: false,
+      sourceMap: true,
     }),
   ],
 };

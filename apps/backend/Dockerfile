@@ -7,8 +7,8 @@ COPY package.json yarn.lock ./
 
 RUN yarn install --production && yarn cache clean
 
-COPY dist/apps ./
+COPY dist/apps/backend ./
 
 EXPOSE 3000
 
-CMD [ "node", "backend/main.js" ]
+CMD [ "node", "main.js" ]

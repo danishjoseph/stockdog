@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import {
+  Asset,
+  AssetExchange,
+  Exchange,
+} from '../../../../typeorm/src/lib/entities';
+import { AssetDto } from '../dto';
 import { AssetExchangeRepository, AssetRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
-import { Asset, AssetExchange, Exchange } from '../entities';
-import { AssetDto } from '../dto';
 
 @Injectable()
 export class AssetService {

@@ -1,9 +1,9 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  Unique,
+  Entity,
   OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { AssetExchange } from './asset-exchange.entity';
 

@@ -1,7 +1,7 @@
-import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { AssetExchange } from './asset-exchange.entity';
 
-export enum AssetType {
+enum AssetType {
   EQUITY = 'EQUITY',
   DEBT = 'DEBT',
 }

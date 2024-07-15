@@ -1,5 +1,5 @@
+import { AssetExchange } from '@stockdog/typeorm';
 import { IsDate, IsNumber, IsOptional } from 'class-validator';
-import { AssetExchange } from '../entities';
 
 export class DeliveryDataDTO {
   @IsDate()

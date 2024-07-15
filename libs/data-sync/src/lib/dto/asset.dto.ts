@@ -1,4 +1,4 @@
-import { AssetExchange } from '@stockdog/asset-management';
+import { AssetExchange } from '@stockdog/typeorm';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class AssetDto {
