@@ -21,11 +21,18 @@
     },
     "docker-build": {
       "dependsOn": ["build"],
-      "command": "docker build -f {projectRoot}/Dockerfile -t {projectName}:latest ."
+      "command": "docker build -f {projectRoot}/Dockerfile -t {projectName}:{args.tag} ."
     },
     "docker": {
-      "dependsOn": ["docker-build"],
-      "command": "docker run --rm --env-file {projectRoot}/.env --net=host -d {projectName}:latest"
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "commands": [
+          "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
+          "docker run --rm --env-file {projectRoot}/.env --net=host -d {projectName}:dev"
+        ],
+        "parallel": false
+      }
     },
     "docker-compose": {
       "command": "docker-compose up -d",
