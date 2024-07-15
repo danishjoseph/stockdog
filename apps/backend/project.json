@@ -25,7 +25,7 @@
     },
     "docker": {
       "dependsOn": ["docker-build"],
-      "command": "docker run --rm --env-file {projectRoot}/.env --net=host {projectName}:latest"
+      "command": "docker run --rm --env-file {projectRoot}/.env --net=host -d {projectName}:latest"
     },
     "docker-compose": {
       "command": "docker-compose up -d",
