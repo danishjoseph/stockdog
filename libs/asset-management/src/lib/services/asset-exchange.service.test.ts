@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AssetExchange } from '../../../../typeorm/src/lib/entities';
+import { AssetExchange } from '@stockdog/typeorm';
 import { AssetExchangeRepository } from '../repositories';
 import { Exchange } from '../types/enums';
 import { AssetExchangeService } from './asset-exchange.service';

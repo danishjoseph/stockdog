@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TradingData } from '../../../../typeorm/src/lib/entities';
+import { TradingData } from '@stockdog/typeorm';
 import { TradingDataRepository } from '../repositories';
 import { TradingDataService } from './trading-data.service';
 

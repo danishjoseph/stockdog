@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DeliveryData } from '../../../../typeorm/src/lib/entities';
+import { DeliveryData } from '@stockdog/typeorm';
 import { DeliveryDataRepository } from '../repositories';
 import { DeliveryDataService } from './delivery-data.service';
 

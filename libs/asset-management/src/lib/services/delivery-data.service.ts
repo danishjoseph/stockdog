@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { DeliveryData } from '@stockdog/typeorm';
 import { InsertResult } from 'typeorm';
-import { DeliveryData } from '../../../../typeorm/src/lib/entities';
 import { DeliveryDataDTO } from '../dto';
 import { DeliveryDataRepository } from '../repositories';
 import { validateAndThrowError } from '../utils/validate-dto-error';
