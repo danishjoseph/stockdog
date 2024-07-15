@@ -1,0 +1,24 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "CommonJS",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@stockdog/asset-management": ["libs/asset-management/src/index.ts"],
+      "@stockdog/data-sync": ["libs/data-sync/src/index.ts"],
+      "@stockdog/typeorm": ["libs/typeorm/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

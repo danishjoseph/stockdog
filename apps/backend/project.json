@@ -1,0 +1,44 @@
+{
+  "name": "backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/backend/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "webpackConfig": "{projectRoot}/webpack.config.js",
+        "outputPath": "dist/{projectRoot}"
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "{projectName}:build"
+      }
+    },
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -f {projectRoot}/Dockerfile -t {projectName}:{args.tag} ."
+    },
+    "docker": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "commands": [
+          "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
+          "docker run --rm --env-file {projectRoot}/.env --net=host -d {projectName}:dev"
+        ],
+        "parallel": false
+      }
+    },
+    "docker-compose": {
+      "command": "docker-compose up -d",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "typeorm",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/typeorm/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project typeorm --web",
+  "targets": {
+    "migration-generate": {
+      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:generate -d {projectRoot}/data-source.ts -p {projectRoot}/src/lib/migrations/{args.name}",
+      "options": {
+        "envFile": "{workspaceRoot}/apps/backend/.env"
+      }
+    },
+    "migration-run": {
+      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:run -d {projectRoot}/data-source.ts",
+      "options": {
+        "envFile": "{workspaceRoot}/apps/backend/.env"
+      }
+    },
+    "migration-revert": {
+      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:revert -d {projectRoot}/data-source.ts",
+      "options": {
+        "envFile": "{workspaceRoot}/apps/backend/.env"
+      }
+    }
+  }
+}
