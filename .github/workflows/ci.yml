@@ -39,6 +39,8 @@ jobs:
     name: Build Docker image
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,12 +54,12 @@ jobs:
 
       - name: Get version number
         id: version
-        run: echo "VERSION=$(cat ./package.json | jq -r '.version')" >> $GITHUB_ENV
+        run: echo "version=$(cat ./package.json | jq -r '.version')" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
         run: |
-          yarn nx run backend:docker-build --tag=${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ env.VERSION  }}
-          docker save ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ env.VERSION  }} > docker_image.tar
+          yarn nx run backend:docker-build --tag=${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }}
+          docker save ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }} > docker_image.tar
 
       - name: Upload Docker image as artifact
         uses: actions/upload-artifact@v3
@@ -85,4 +87,4 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ env.VERSION  }}
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ needs.build.outputs.version }}
