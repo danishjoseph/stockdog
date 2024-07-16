@@ -57,6 +57,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install test dependencies
+        run: yarn install --production=false --only=dev
+
       - name: Build Docker image
         run: |
           yarn nx run backend:docker-build --tag=${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.VERSION }}
@@ -71,6 +74,7 @@ jobs:
     name: Push Docker image to DockerHub
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Download Docker image
         uses: actions/download-artifact@v3
