@@ -21,7 +21,7 @@
     },
     "docker-build": {
       "dependsOn": ["build"],
-      "command": "docker build -f {projectRoot}/Dockerfile -t {projectName}:{args.tag} ."
+      "command": "docker build -f {projectRoot}/Dockerfile -t {args.tag} ."
     },
     "docker": {
       "executor": "nx:run-commands",
