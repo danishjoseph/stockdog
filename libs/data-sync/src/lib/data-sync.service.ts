@@ -17,7 +17,7 @@ export class DataSyncService {
   ) {}
   private readonly logger = new Logger(DataSyncService.name);
 
-  @Cron(CronExpression.EVERY_DAY_AT_7PM, { timeZone: 'Asia/Kolkata' })
+  @Cron(process.env.CRON_SCHEDULE, { timeZone: process.env.TZ })
   async execute() {
     const currentDate = getCurrentDate();
     this.logger.log(
