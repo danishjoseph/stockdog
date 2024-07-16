@@ -85,4 +85,4 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ needs.build.outputs.VERSION }}
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ env.VERSION  }}
