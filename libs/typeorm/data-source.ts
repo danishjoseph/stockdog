@@ -9,8 +9,8 @@ const dataSourceOptions: DataSourceOptions = {
   database: process.env.DB_NAME,
   synchronize: false,
   logging: true,
-  entities: ['./src/lib/entities/*.entity{.ts,.js}'],
-  migrations: ['./src/lib/migrations/*{.ts,.js}'],
+  entities: ['./libs/typeorm/src/lib/entities/*.entity{.ts,.js}'],
+  migrations: ['./libs/typeorm/src/lib/migrations/*{.ts,.js}'],
   migrationsRun: true,
 };
 
