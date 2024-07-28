@@ -13,12 +13,13 @@ export class AssetExchangeService {
     const identifier =
       exchange.abbreviation === Ex.NSE ? 'symbol' : 'assetExchangeCode';
 
-    return this.assetExchangeRepository.findOneBy(
-      {
+    return this.assetExchangeRepository.findOne({
+      where: {
         asset: { [identifier]: symbol },
         exchange,
       },
-      relations,
-    );
+      relations: relations,
+      order: { id: 'DESC' },
+    });
   }
 }

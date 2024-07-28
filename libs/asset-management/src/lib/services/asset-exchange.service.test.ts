@@ -15,7 +15,7 @@ describe('AssetExchangeService', () => {
         {
           provide: AssetExchangeRepository,
           useValue: {
-            findOneBy: jest.fn(),
+            findOne: jest.fn(),
           },
         },
       ],
@@ -44,7 +44,7 @@ describe('AssetExchangeService', () => {
       deliveryData: jest.fn(),
     };
 
-    assetExchangeRepository.findOneBy.mockResolvedValue(
+    assetExchangeRepository.findOne.mockResolvedValue(
       expectedData as unknown as AssetExchange,
     );
 
@@ -55,12 +55,13 @@ describe('AssetExchangeService', () => {
     );
 
     expect(result).toEqual(expectedData);
-    expect(assetExchangeRepository.findOneBy).toHaveBeenCalledWith(
-      {
+    expect(assetExchangeRepository.findOne).toHaveBeenCalledWith({
+      where: {
         asset: { symbol },
         exchange,
       },
       relations,
-    );
+      order: { id: 'DESC' },
+    });
   });
 });
