@@ -15,10 +15,9 @@ export class AssetService {
     await validateAndThrowError(assetData, 'AssetDto');
 
     const [existingStock, existingAssetExchange] = await Promise.all([
-      this.assetRepository.findOneBy({ isin: assetData.isin }),
-      this.assetExchangeRepository.findOneBy({
-        asset: { isin: assetData.isin },
-        exchange,
+      this.assetRepository.findOne({ where: { isin: assetData.isin } }),
+      this.assetExchangeRepository.findOne({
+        where: { asset: { isin: assetData.isin }, exchange },
       }),
     ]);
     let savedStock;
