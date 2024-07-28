@@ -20,6 +20,7 @@ export interface DatabaseRepository<T extends ObjectLiteral> {
     options: UpsertOptions<T>,
   ): Promise<InsertResult>;
   createQueryBuilder(alias: string): SelectQueryBuilder<T>;
+  findOne(options: FindOneOptions<T>): Promise<T | null>;
 }
 
 export abstract class BaseRepository<T extends ObjectLiteral>
@@ -27,10 +28,14 @@ export abstract class BaseRepository<T extends ObjectLiteral>
 {
   constructor(protected readonly repository: Repository<T>) {}
 
+  findOne(options: FindOneOptions<T>): Promise<T | null> {
+    return this.repository.findOne(options);
+  }
+
   async findAll(): Promise<T[]> {
     return this.repository.find();
   }
-
+  // Todo: Remove this method
   async findById(id: any): Promise<T | null> {
     return this.repository.findOne(id);
   }
