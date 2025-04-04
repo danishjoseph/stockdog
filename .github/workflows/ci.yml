@@ -62,10 +62,11 @@ jobs:
           docker save ${{ secrets.DOCKER_HUB_USERNAME }}/stockdog:v-${{ steps.version.outputs.version }} > docker_image.tar
 
       - name: Upload Docker image as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: docker_image.tar
+          overwrite: true
   push:
     name: Push Docker image to DockerHub
     needs: build
@@ -73,7 +74,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Download Docker image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: docker-image
 
