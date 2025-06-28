@@ -11,6 +11,9 @@
         "cwd": "{projectRoot}"
       }
     },
+    "dev": {
+      "command": "nx watch -p {projectName} -- nx run {projectName}:build"
+    },
     "build": {
       "command": "sh ./build.sh",
       "options": {
