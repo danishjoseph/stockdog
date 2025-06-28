@@ -1,14 +1,17 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 
+const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, NODE_ENV } =
+  process.env;
+
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres' as const,
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: DB_HOST,
+  port: +DB_PORT,
+  username: DB_USERNAME,
+  password: DB_PASSWORD,
+  database: DB_NAME,
   synchronize: false,
-  logging: true,
+  logging: NODE_ENV === 'development' ? true : false,
   entities: ['./entities/*.entity{.ts,.js}'],
   migrations: ['./migrations/*{.ts,.js}'],
   migrationsRun: true,
