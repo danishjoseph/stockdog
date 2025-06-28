@@ -7,22 +7,13 @@
   "// targets": "to see all targets run: nx show project typeorm --web",
   "targets": {
     "migration-generate": {
-      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:generate -d {projectRoot}/data-source.ts -p {projectRoot}/src/lib/migrations/{args.name}",
-      "options": {
-        "envFile": "{workspaceRoot}/apps/backend/.env"
-      }
+      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:generate -d {projectRoot}/src/lib/data-source.ts -p {projectRoot}/src/lib/migrations/{args.name}"
     },
     "migration-run": {
-      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:run -d {projectRoot}/data-source.ts",
-      "options": {
-        "envFile": "{workspaceRoot}/apps/backend/.env"
-      }
+      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:run -d {projectRoot}/src/lib/data-source.ts"
     },
     "migration-revert": {
-      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:revert -d {projectRoot}/data-source.ts",
-      "options": {
-        "envFile": "{workspaceRoot}/apps/backend/.env"
-      }
+      "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/.bin/typeorm migration:revert -d {projectRoot}/src/lib/data-source.ts"
     }
   }
 }

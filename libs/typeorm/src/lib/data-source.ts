@@ -1,6 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 
-const dataSourceOptions: DataSourceOptions = {
+export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres' as const,
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -9,8 +9,8 @@ const dataSourceOptions: DataSourceOptions = {
   database: process.env.DB_NAME,
   synchronize: false,
   logging: true,
-  entities: ['./libs/typeorm/src/lib/entities/*.entity{.ts,.js}'],
-  migrations: ['./libs/typeorm/src/lib/migrations/*{.ts,.js}'],
+  entities: ['./entities/*.entity{.ts,.js}'],
+  migrations: ['./migrations/*{.ts,.js}'],
   migrationsRun: true,
 };
 
