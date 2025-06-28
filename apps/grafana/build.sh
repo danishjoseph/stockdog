@@ -21,7 +21,7 @@ cp -r "./provisioning" "$OUTPUT_DIR/provisioning"
 JSONNET_PATH="$(realpath vendor)"
 export JSONNET_PATH
 
-for file in ./src/panels/*.jsonnet; do
+for file in ./src/dashboards/*.jsonnet; do
     filename=$(basename -- "$file")
     output="$DASHBOARD_DIR/${filename%.*}.json"
     jsonnet -J "$JSONNET_PATH" -o "$output" "$file"
