@@ -3,8 +3,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AssetManagementModule } from '@stockdog/asset-management';
 import { DataSyncModule } from '@stockdog/data-sync';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { dataSourceOptions } from '@stockdog/typeorm';
 
 @Module({
@@ -14,7 +12,7 @@ import { dataSourceOptions } from '@stockdog/typeorm';
     AssetManagementModule,
     DataSyncModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
