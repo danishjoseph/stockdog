@@ -4,5 +4,5 @@ providers:
   - name: dashboards
     type: file
     options:
-      path: /app/grafana/dashboards
+      path: /app/dashboard/dashboards
       foldersFromFilesStructure: true

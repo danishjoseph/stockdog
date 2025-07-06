@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DIST_DIR="../../dist/apps/grafana"
+DIST_DIR="../../dist/apps/dashboard"
 DASHBOARD_DIR="./src/dashboards"
 
 if [[ -d "$DIST_DIR" ]]; then
@@ -24,7 +24,11 @@ export JSONNET_PATH
 for file in $DASHBOARD_DIR/*.jsonnet; do
     filename=$(basename -- "$file")
     output="$DIST_DIR/dashboards/${filename%.*}.json"
-    jsonnet -J "$JSONNET_PATH" -o "$output" "$file"
-    echo "Converted $file to $output"
+    if jsonnet -J "$JSONNET_PATH" -o "$output" "$file"; then
+        echo "Converted $file to $output"
+    else
+        echo "Failed to convert $file"
+        exit 1 
+    fi
 done
 

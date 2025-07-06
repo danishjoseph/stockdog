@@ -5,10 +5,10 @@ datasources:
     type: postgres
     access: proxy
     url: $DB_HOST:$DB_PORT
-    database: ${DB_NAME}
-    user: ${DB_USERNAME}
+    database: $DB_NAME
+    user: $DB_USERNAME
     secureJsonData:
-      password: ${DB_PASSWORD}
+      password: $DB_PASSWORD
     uid: edjh8vws68hdse
     jsonData:
       sslmode: disable # Add this line to disable SSL

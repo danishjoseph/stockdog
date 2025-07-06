@@ -57,7 +57,7 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 #vendor files for grafana-dashboards
-apps/grafana/vendor/
+apps/dashboard/vendor/
 
 #nx
 .nx/

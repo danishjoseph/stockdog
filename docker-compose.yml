@@ -33,15 +33,16 @@ services:
     networks:
       - stockdog
 
-  grafana:
-    container_name: stockdog_grafana
+  dashboard:
+    container_name: stockdog_dashboard
     build:
       context: .
-      dockerfile: ./apps/grafana/Dockerfile
+      dockerfile: ./apps/dashboard/Dockerfile
     ports:
       - '${GF_PORT}:3000'
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - dashboard:/var/lib/grafana
+      - ./dist/apps/:/app
     networks:
       - stockdog
     depends_on:
@@ -57,7 +58,7 @@ services:
 
 volumes:
   db-data:
-  grafana-storage:
+  dashboard:
 
 networks:
   stockdog:

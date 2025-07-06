@@ -1,7 +1,7 @@
 {
-  "name": "grafana",
+  "name": "dashboard",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/grafana/src",
+  "sourceRoot": "apps/dashboard/src",
   "projectType": "application",
   "tags": [],
   "targets": {
@@ -29,8 +29,8 @@
       "dependsOn": ["build"],
       "options": {
         "commands": [
-          "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
-          "docker run --rm --env-file .env -p ${GF_PORT}:3000 -d -e GF_SECURITY_ADMIN_USER=${GF_USER} -e GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD} --net=stockdog_network {projectName}:dev"
+          "podman build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
+          "podman run --rm --env-file .env -p ${GF_PORT}:3000 -d -e GF_SECURITY_ADMIN_USER=${GF_USER} -e GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD} --net=stockdog_network {projectName}:dev"
         ],
         "parallel": false
       }
