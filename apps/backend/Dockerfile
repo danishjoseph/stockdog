@@ -3,9 +3,11 @@ FROM node:21-alpine
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+RUN corepack enable 
 
-RUN yarn install --production && yarn cache clean
+COPY package.json yarn.lock .yarnrc.yml ./
+
+RUN yarn workspaces focus --production && yarn cache clean 
 
 COPY dist/apps/backend ./
 

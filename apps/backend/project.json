@@ -29,7 +29,7 @@
       "options": {
         "commands": [
           "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
-          "docker run --rm --env-file .env --net=stockdog_network {projectName}:dev"
+          "docker run --rm --env-file .env --net=stockdog {projectName}:dev"
         ],
         "parallel": false
       }
