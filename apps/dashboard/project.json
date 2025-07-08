@@ -20,19 +20,21 @@
         "cwd": "{projectRoot}"
       }
     },
-    "docker-build": {
-      "dependsOn": ["build"],
-      "command": "docker build -f {projectRoot}/Dockerfile -t {args.tag} ."
-    },
     "docker": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
         "commands": [
-          "podman build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
-          "podman run --rm --env-file .env -p ${GF_PORT}:3000 -d -e GF_SECURITY_ADMIN_USER=${GF_USER} -e GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD} --net=stockdog_network {projectName}:dev"
+          "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
+          "docker run --rm --env-file .env -p ${GF_PORT}:3000 -d -e GF_SECURITY_ADMIN_USER=${GF_USER} -e GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD} --net=stockdog {projectName}:dev"
         ],
         "parallel": false
+      }
+    },
+    "docker-compose": {
+      "command": "docker-compose up -d {projectName}",
+      "options": {
+        "cwd": "{projectRoot}"
       }
     }
   }

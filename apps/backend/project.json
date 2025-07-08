@@ -19,10 +19,6 @@
         "buildTarget": "{projectName}:build"
       }
     },
-    "docker-build": {
-      "dependsOn": ["build"],
-      "command": "docker build -f {projectRoot}/Dockerfile -t {args.tag} ."
-    },
     "docker": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
@@ -35,7 +31,7 @@
       }
     },
     "docker-compose": {
-      "command": "docker-compose up -d",
+      "command": "docker-compose up -d {projectName}",
       "options": {
         "cwd": "{projectRoot}"
       }

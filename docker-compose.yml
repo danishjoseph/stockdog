@@ -1,6 +1,6 @@
 services:
   database:
-    container_name: stockdog_db
+    container_name: ${SERVICE_NAME}_db
     image: postgres:13
     environment:
       POSTGRES_USER: ${DB_USERNAME}
@@ -10,11 +10,9 @@ services:
       - '${DB_PORT}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
-    networks:
-      - stockdog
 
   backend:
-    container_name: stockdog_backend
+    container_name: ${SERVICE_NAME}_backend
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
@@ -28,13 +26,13 @@ services:
       CRON_SCHEDULE: ${CRON_SCHEDULE}
       TZ: ${TZ}
       PORT: ${PORT}
+    ports:
+      - '${PORT}:${PORT}'
     depends_on:
       - database
-    networks:
-      - stockdog
 
   dashboard:
-    container_name: stockdog_dashboard
+    container_name: ${SERVICE_NAME}_dashboard
     build:
       context: .
       dockerfile: ./apps/dashboard/Dockerfile
@@ -42,9 +40,6 @@ services:
       - '${GF_PORT}:3000'
     volumes:
       - dashboard:/var/lib/grafana
-      - ./dist/apps/:/app
-    networks:
-      - stockdog
     depends_on:
       - database
     environment:
@@ -61,5 +56,5 @@ volumes:
   dashboard:
 
 networks:
-  stockdog:
-    name: stockdog_network
+  default:
+    name: ${SERVICE_NAME}
