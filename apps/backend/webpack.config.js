@@ -9,8 +9,8 @@ module.exports = {
       tsConfig: './tsconfig.app.json',
       outputPath: 'dist/apps/backend',
       outputHashing: 'none',
-      optimization: false,
-      sourceMap: true,
+      optimization: process.env.NODE_ENV === 'production',
+      sourceMap: process.env.NODE_ENV !== 'production',
     }),
   ],
 };
