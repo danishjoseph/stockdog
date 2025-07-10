@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { AxiosHeaders } from 'axios';
 import { PassThrough } from 'stream';
 import * as unzipper from 'unzipper';
@@ -7,14 +7,31 @@ import { BseService } from './bse.service';
 import { NseService } from './nse.service';
 import { HttpClient } from './utils/httpClient';
 import { getCurrentDate, getUtcTradeDays } from './utils/trade-days';
+import { CronJob } from 'cron';
 
 @Injectable()
-export class DataSyncService {
+export class DataSyncService implements OnModuleInit {
   constructor(
     private httpClient: HttpClient,
+    private schedulerRegistry: SchedulerRegistry,
     private nseService: NseService,
     private bseService: BseService,
   ) {}
+
+  onModuleInit() {
+    const cronSchedule = process.env.CRON_SCHEDULE;
+    const timeZone = process.env.TZ;
+    const job = new CronJob(
+      cronSchedule,
+      () => this.execute(),
+      null,
+      true,
+      timeZone,
+    );
+
+    this.schedulerRegistry.addCronJob('scrap_data', job);
+  }
+
   private readonly logger = new Logger(DataSyncService.name);
 
   @Cron(process.env.CRON_SCHEDULE, { timeZone: process.env.TZ })
