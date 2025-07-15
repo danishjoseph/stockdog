@@ -1,18 +1,14 @@
 services:
   database:
-    container_name: ${SERVICE_NAME}_db
     image: postgres:13
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    ports:
-      - '${DB_PORT}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
 
   backend:
-    container_name: ${SERVICE_NAME}_backend
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
@@ -32,7 +28,6 @@ services:
       - database
 
   dashboard:
-    container_name: ${SERVICE_NAME}_dashboard
     build:
       context: .
       dockerfile: ./apps/dashboard/Dockerfile
@@ -57,4 +52,3 @@ volumes:
 
 networks:
   default:
-    name: ${SERVICE_NAME}
