@@ -5,8 +5,8 @@ import { PassThrough } from 'stream';
 import * as unzipper from 'unzipper';
 import { BseService } from './bse.service';
 import { NseService } from './nse.service';
-import { HttpClient } from './utils/httpClient';
-import { getCurrentDate, getUtcTradeDays } from './utils/trade-days';
+import { HttpClient } from '../utils/httpClient';
+import { getCurrentDate, getUtcTradeDays } from '../utils/trade-days';
 import { CronJob } from 'cron';
 
 @Injectable()
