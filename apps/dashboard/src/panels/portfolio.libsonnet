@@ -63,8 +63,11 @@ local datasourceOptions = var.common.postgres;
       // Override 1
       override.byName.new('symbol')
       + override.byName.withProperty('custom.cellOptions', { type: 'color-text' })
-      + override.byName.withProperty('links', [{ title: 'refresh', url: 'd/daily-data/daily-data?orgId=1&from=now-90d&to=now&timezone=utc&var-isin${__data.fields.ISIN}', targetBlank: true }]),
-
+      + override.byName.withProperty('links', [{
+        title: 'daily-data',
+        url: 'd/' + var.common.candlestick.uid + '/daily-data?orgId=1&from=now-90d&to=now&timezone=utc&var-isin=' + '${__data.fields.ISIN}',
+        targetBlank: true,
+      }]),
     ])
     + table.gridPos.withH(16)
     + table.gridPos.withW(24),
@@ -86,7 +89,11 @@ local datasourceOptions = var.common.postgres;
       // Override 1
       override.byName.new('symbol')
       + override.byName.withProperty('custom.cellOptions', { type: 'color-text' })
-      + override.byName.withProperty('links', [{ title: 'refresh', url: 'd/{var.common.candlestick.uid}/daily-data?orgId=1&from=now-90d&to=now&timezone=utc&var-isin${__data.fields.ISIN}', targetBlank: true }]),
+      + override.byName.withProperty('links', [{
+        title: 'daily-data',
+        url: 'd/' + var.common.candlestick.uid + '/daily-data?orgId=1&from=now-90d&to=now&timezone=utc&var-isin=' + '${__data.fields.ISIN}',
+        targetBlank: true,
+      }]),
     ])
     + table.gridPos.withH(16)
     + table.gridPos.withW(24),
