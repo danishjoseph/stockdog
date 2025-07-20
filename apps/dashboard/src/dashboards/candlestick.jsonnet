@@ -4,7 +4,8 @@ local panel = import '../panels/main.libsonnet';
 local queries = import '../queries/main.libsonnet';
 local var = import '../variables/main.libsonnet';
 
-g.dashboard.new('Daily Data')
+g.dashboard.new(var.common.candlestick.dashboardName)
++ g.dashboard.withUid(var.common.candlestick.uid)
 + g.dashboard.withTags(['candlesticks', 'templated'])
 + g.dashboard.time.withFrom('now-30d')
 + g.dashboard.withVariables([var.candlestick.isin, var.candlestick.industrySector, var.candlestick.exchange])

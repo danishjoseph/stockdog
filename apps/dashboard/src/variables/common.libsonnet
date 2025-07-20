@@ -6,4 +6,5 @@ local postgresUid = 'edjh8vws68hdse';
 
 {
   postgres: { datasource: postgresDatasource, uid: postgresUid },
+  candlestick: { dashboardName: 'Daily Data', uid: 'one' },
 }

@@ -1,33 +1,61 @@
 local getAllStocks() =
   local query = |||
     WITH ExchangeInfo AS (
-      SELECT
-        assets.id AS asset_id,
-        CASE
-          WHEN COUNT(DISTINCT exchange.abbreviation) > 1 THEN 'NSE/BSE'
-          ELSE MAX(exchange.abbreviation)
-        END AS exchange
-      FROM
-        asset_exchange AS AE
-      JOIN
-        assets ON AE."assetId" = assets.id
-      JOIN
-        exchange ON AE."exchangeId" = exchange.id
-      GROUP BY
-        assets.id
-    )
+        SELECT
+            "ae"."assetId" AS asset_id,
+            CASE
+                WHEN COUNT(DISTINCT exchange.abbreviation) > 1 THEN 'NSE/BSE'
+                ELSE MAX(exchange.abbreviation)
+            END AS exchange
+        FROM
+            asset_exchange AS "ae"
+        JOIN
+            exchange ON "ae"."exchangeId" = exchange.id
+        GROUP BY
+            "ae"."assetId"
+    ),
 
+    AggregatedData AS (
+        SELECT
+            "ae"."assetId" AS asset_id,
+            SUM(trading_data.volume) AS total_trading_volume,
+            SUM(delivery_data."deliveryQuantity") AS total_delivery_quantity,
+            SUM(trading_data.volume) - SUM(delivery_data."deliveryQuantity") AS intraday_volume,
+            CASE WHEN SUM(trading_data.volume) > 0 THEN
+                (SUM(delivery_data."deliveryQuantity") / SUM(trading_data.volume)) * 100
+            ELSE 0 END AS recalculated_delivery_percentage
+        FROM
+            asset_exchange AS "ae"
+        JOIN
+            trading_data ON "ae"."id" = trading_data."assetExchangeId"
+        JOIN
+            delivery_data ON "ae"."id" = delivery_data."assetExchangeId"
+            AND trading_data."date" = delivery_data."date"
+        WHERE
+            trading_data."date" BETWEEN CAST($__timeFrom() AS DATE)
+            AND CAST($__timeTo() AS DATE)
+            AND delivery_data."date" BETWEEN CAST($__timeFrom() AS DATE)
+            AND CAST($__timeTo() AS DATE)
+        GROUP BY
+            "ae"."assetId"
+    )
     SELECT
-      assets.*,
-      EI.exchange AS exchange
+        assets."isin",
+        assets."symbol",
+        assets."name",
+        assets."industry",
+        assets."sector",
+        EI.exchange AS exchange,
+        AD.total_trading_volume AS "Total Volume (T+D)",
+        AD.total_delivery_quantity AS "Delivery Volume",
+        AD.intraday_volume AS "Trade Volume",
+        AD.recalculated_delivery_percentage AS "Delivery Percentage"
     FROM
-      ExchangeInfo EI
+        AggregatedData AD
     JOIN
-      asset_exchange AS AE ON EI.asset_id = AE."assetId"
+        ExchangeInfo EI ON AD.asset_id = EI.asset_id
     JOIN
-      assets ON AE."assetId" = assets.id
-    JOIN
-      exchange ON AE."exchangeId" = exchange.id
+        assets ON AD.asset_id = assets.id
   |||;
   query;
 
