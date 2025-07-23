@@ -1,6 +1,9 @@
+local g = import '../g.libsonnet';
 local var = import '../variables/main.libsonnet';
-local grafonnet = import 'github.com/grafana/grafonnet/gen/grafonnet-latest/main.libsonnet';
-local candlestick = grafonnet.panel.candlestick;
+local candlestick = g.panel.candlestick;
+local stat = g.panel.stat;
+local standardOptions = candlestick.standardOptions;
+local override = standardOptions.override;
 
 
 local targetsArray(targets) = if std.type(targets) == 'string' then [targets] else targets;
@@ -30,6 +33,13 @@ local candlesticks_chart(title, targets) =
     options: {},
   }])
   + candlestick.options.withIncludeAllFields(true)
+  + standardOptions.withOverrides(
+    [
+      override.byName.new('deliveryPercentage')
+      + override.byName.withProperty('custom.drawStyle', 'line')
+      + override.byName.withProperty('unit', 'percent'),
+    ]
+  )
 ;
 
 local candlesticks_chart_combined(title, targets) =
@@ -100,8 +110,25 @@ local delivery_insights(title, targets) =
   }])
   + candlestick.options.withIncludeAllFields(true);
 
+local stat(title, target) =
+  stat.new(title)
+  + stat.panelOptions.withTransparent()
+  + stat.queryOptions.withDatasource(var.common.postgres.datasource, var.common.postgres.uid)
+  + stat.queryOptions.withTargets(
+    {
+      format: 'table',
+      editorMode: 'code',
+      rawQuery: true,
+      rawSql: target,
+    }
+  )
+  + stat.options.withShowPercentChange(true)
+  + stat.options.withGraphMode()
+;
+
 {
   candlesticks_chart: candlesticks_chart,
   delivery_insights: delivery_insights,
   candlesticks_chart_combined: candlesticks_chart_combined,
+  stat: stat,
 }
