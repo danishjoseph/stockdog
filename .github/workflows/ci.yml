@@ -83,6 +83,13 @@ jobs:
       - name: Build application bundle
         run: yarn nx run ${{ matrix.app }}:build
 
+      - name: Upload build artifacts
+        if: matrix.app == 'dashboard' # Specify condition if needed
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./dist
+
       - name: Generate version number
         id: version
         run: |
