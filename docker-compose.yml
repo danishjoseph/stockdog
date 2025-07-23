@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    ports:
-      - '${DB_PORT}:${DB_PORT}'
     volumes:
       - db-data:/var/lib/postgresql/data
 
@@ -37,7 +35,6 @@ services:
       - '${GF_PORT}:3000'
     volumes:
       - dashboard:/var/lib/grafana
-      - ./dist/apps/:/app/
     depends_on:
       - database
     environment:
