@@ -19,6 +19,7 @@ local exchange = var.custom.new(
   values=[
     { key: 'NSE', value: 'NSE' },
     { key: 'BSE', value: 'BSE' },
+    { key: 'NSE/BSE', value: 'NSE/BSE' },
   ]
 );
 

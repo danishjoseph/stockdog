@@ -18,6 +18,8 @@ local getAllStocks() =
     AggregatedData AS (
         SELECT
             "ae"."assetId" AS asset_id,
+            SUM(trading_data."volume") / SUM(trading_data."totalTrades") AS avg_trade_size,
+            AVG(trading_data.close) AS close,
             SUM(trading_data.volume) AS total_trading_volume,
             SUM(delivery_data."deliveryQuantity") AS total_delivery_quantity,
             SUM(trading_data.volume) - SUM(delivery_data."deliveryQuantity") AS intraday_volume,
@@ -46,6 +48,8 @@ local getAllStocks() =
         assets."industry",
         assets."sector",
         EI.exchange AS exchange,
+        AD.close AS "Price",
+        AD.avg_trade_size AS "Average Trade Size",
         AD.total_trading_volume AS "Total Volume (T+D)",
         AD.total_delivery_quantity AS "Delivery Volume",
         AD.intraday_volume AS "Trade Volume",

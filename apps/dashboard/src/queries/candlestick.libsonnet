@@ -1,34 +1,42 @@
 {
   trading_data: |||
     SELECT
-      exchange."abbreviation",
-      trading_data."date",
-      assets."isin",
-      trading_data."open" as "open",
-      trading_data."high" as "high",
-      trading_data."low" as "low",
-      trading_data."close" as "close",
-      trading_data."volume" as "volume"
+        assets."isin",
+        trading_data."date",
+      COALESCE(AVG(trading_data."open"), 0) as "open",
+      COALESCE(AVG(trading_data."high"), 0) as "high",
+      COALESCE(AVG(trading_data."low"), 0) as "low",
+      COALESCE(AVG(trading_data."close"), 0) as "close",
+      COALESCE(SUM(trading_data."volume"), 0) as "volume",
+      COALESCE((SUM(delivery_data."deliveryQuantity")::numeric / SUM(trading_data."volume")) * 100, 0) as "deliveryPercentage"
     FROM
-      asset_exchange AS "ae"
-      JOIN assets ON "ae"."assetId" = assets.id
-      JOIN trading_data ON "ae"."id" = trading_data."assetExchangeId"
-      JOIN delivery_data ON "ae".id = delivery_data."assetExchangeId"
+        asset_exchange AS "ae"
+    JOIN
+        assets ON "ae"."assetId" = assets.id
+    JOIN
+        trading_data ON "ae"."id" = trading_data."assetExchangeId"
+    JOIN
+        delivery_data ON "ae".id = delivery_data."assetExchangeId"
         AND trading_data."date" = delivery_data."date"
-      JOIN exchange ON "ae"."exchangeId" = exchange.id
+    JOIN
+        exchange ON "ae"."exchangeId" = exchange.id
     WHERE
-      assets."isin" = '${isin}'
-      AND exchange."abbreviation" = '${exchange}'
+        assets."isin" = '${isin}'
+        AND (
+            ('${exchange}' = 'NSE/BSE' AND (exchange."abbreviation" = 'NSE' OR exchange."abbreviation" = 'BSE'))
+            OR exchange."abbreviation" = '${exchange}'
+        )
+        AND $__timeFilter(trading_data."date")
+    GROUP BY
+        assets."isin", trading_data."date";
   |||,
   delivery_insights: |||
     SELECT
       exchange."abbreviation",
       trading_data."date",
       assets."isin",
-      (trading_data."volume"::numeric / trading_data."totalTrades") as "avgTradeSize",
-      trading_data."volume" as "tradingVolume",
-      delivery_data."deliveryQuantity" as "deliveryVolume",
-      (delivery_data."deliveryQuantity"::numeric / trading_data."volume") * 100 as "deliveryPercentage"
+      (trading_data."volume" - delivery_data."deliveryQuantity") as "tradingVolume",
+      delivery_data."deliveryQuantity" as "deliveryVolume"
     FROM
       asset_exchange AS "ae"
       JOIN assets ON "ae"."assetId" = assets.id
@@ -59,6 +67,7 @@
       JOIN exchange ON "ae"."exchangeId" = exchange.id
     WHERE
       assets."isin" = '${isin}'
+      AND $__timeFilter(trading_data."date")
     GROUP BY
       trading_data."date",
       assets."isin";
@@ -78,6 +87,46 @@
       assets
   |||,
   simple_moving_average_5d: |||
+    WITH exchange_filtered_data AS (
+      SELECT
+        DATE(trading_data."date") AS time,
+        trading_data."close" AS close_price
+      FROM
+        asset_exchange AS "ae"
+        JOIN assets ON "ae"."assetId" = assets.id
+        JOIN trading_data ON "ae"."id" = trading_data."assetExchangeId"
+        JOIN exchange ON "ae"."exchangeId" = exchange.id
+      WHERE
+        assets."isin" = '${isin}'
+        AND (
+          ('${exchange}' = 'NSE/BSE' AND (exchange."abbreviation" = 'NSE' OR exchange."abbreviation" = 'BSE'))
+          OR exchange."abbreviation" = '${exchange}'
+        )
+        AND $__timeFilter(trading_data."date")
+    ),
+
+    combined_daily_closes AS (
+      SELECT
+        time,
+        AVG(close_price) AS total_close
+      FROM
+        exchange_filtered_data
+      GROUP BY
+        time
+    )
+
+    SELECT
+      time,
+      AVG(total_close) OVER (
+        ORDER BY
+          time ROWS BETWEEN 4 PRECEDING AND CURRENT ROW
+      ) AS "5_ma"
+    FROM
+      combined_daily_closes
+    ORDER BY
+      time ASC;
+  |||,
+  average_volume: |||
     WITH daily_averages AS (
       SELECT
         DATE(trading_data."date") AS time,

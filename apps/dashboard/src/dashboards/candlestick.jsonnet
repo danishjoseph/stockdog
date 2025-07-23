@@ -12,7 +12,6 @@ g.dashboard.new(var.common.candlestick.dashboardName)
 + g.dashboard.withPanels(
   [
     panel.candlestick.candlesticks_chart('Daily chart', [queries.candlestick.trading_data, queries.candlestick.simple_moving_average_5d]),
-    panel.candlestick.candlesticks_chart_combined('Daily chart - Combined NSE/BSE', [queries.candlestick.trading_data_combined, queries.candlestick.simple_moving_average_5d]),
-    panel.candlestick.delivery_insights('Delivery Insights', [queries.candlestick.delivery_insights]),
+    panel.timeseries.delivery_insights('Delivery Insights', [queries.candlestick.delivery_insights]),
   ]
 )
