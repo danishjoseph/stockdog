@@ -1,6 +1,21 @@
 local getAllStocks() =
   local query = |||
-    WITH ExchangeInfo AS (
+    WITH LatestDate AS (
+        SELECT
+            "ae"."assetId" AS asset_id,
+            MAX(trading_data."date") AS latest_date
+        FROM
+            asset_exchange AS "ae"
+        JOIN
+            trading_data ON "ae"."id" = trading_data."assetExchangeId"
+        WHERE
+            trading_data."date" BETWEEN CAST($__timeFrom() AS DATE)
+            AND CAST($__timeTo() AS DATE)
+        GROUP BY
+            "ae"."assetId"
+    ),
+
+    ExchangeInfo AS (
         SELECT
             "ae"."assetId" AS asset_id,
             CASE
@@ -23,9 +38,12 @@ local getAllStocks() =
             SUM(trading_data.volume) AS total_trading_volume,
             SUM(delivery_data."deliveryQuantity") AS total_delivery_quantity,
             SUM(trading_data.volume) - SUM(delivery_data."deliveryQuantity") AS intraday_volume,
-            CASE WHEN SUM(trading_data.volume) > 0 THEN
-                (SUM(delivery_data."deliveryQuantity") / SUM(trading_data.volume)) * 100
-            ELSE 0 END AS recalculated_delivery_percentage
+            CASE 
+                WHEN SUM(trading_data.volume) > 0 THEN
+                    (SUM(delivery_data."deliveryQuantity") / SUM(trading_data.volume)) * 100
+                ELSE 
+                    0 
+                END AS recalculated_delivery_percentage
         FROM
             asset_exchange AS "ae"
         JOIN
@@ -33,14 +51,16 @@ local getAllStocks() =
         JOIN
             delivery_data ON "ae"."id" = delivery_data."assetExchangeId"
             AND trading_data."date" = delivery_data."date"
+        JOIN 
+            LatestDate ON "ae"."assetId" = LatestDate.asset_id 
+            AND trading_data."date" = LatestDate.latest_date
         WHERE
             trading_data."date" BETWEEN CAST($__timeFrom() AS DATE)
-            AND CAST($__timeTo() AS DATE)
-            AND delivery_data."date" BETWEEN CAST($__timeFrom() AS DATE)
             AND CAST($__timeTo() AS DATE)
         GROUP BY
             "ae"."assetId"
     )
+
     SELECT
         assets."isin",
         assets."symbol",

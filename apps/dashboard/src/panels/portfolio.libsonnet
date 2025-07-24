@@ -65,7 +65,7 @@ local datasourceOptions = var.common.postgres;
       + override.byName.withProperty('custom.cellOptions', { type: 'color-text' })
       + override.byName.withProperty('links', [{
         title: 'daily-data',
-        url: 'd/' + var.common.candlestick.uid + '/daily-data?orgId=1&from=now-90d&to=now&timezone=utc' + '&var-isin=${__data.fields.ISIN}' + '&var-exchange=${__data.fields.exchange}',
+        url: 'd/' + var.common.candlestick.uid + '/daily-data?orgId=1&from=${__from}&to=${__to}&timezone=utc' + '&var-isin=${__data.fields.ISIN}' + '&var-exchange=${__data.fields.exchange}',
         targetBlank: true,
       }]),
     ])
@@ -91,7 +91,7 @@ local datasourceOptions = var.common.postgres;
       + override.byName.withProperty('custom.cellOptions', { type: 'color-text' })
       + override.byName.withProperty('links', [{
         title: 'daily-data',
-        url: 'd/' + var.common.candlestick.uid + '/daily-data?orgId=1&from=now-90d&to=now&timezone=utc' + '&var-isin=${__data.fields.isin}' + '&var-exchange=${__data.fields.exchange}',
+        url: 'd/' + var.common.candlestick.uid + '/daily-data?orgId=1&from=${__from}&to=${__to}&timezone=utc' + '&var-isin=${__data.fields.isin}' + '&var-exchange=${__data.fields.exchange}',
         targetBlank: true,
       }]),
     ])
