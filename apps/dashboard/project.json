@@ -11,6 +11,14 @@
         "cwd": "{projectRoot}"
       }
     },
+    "serve": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["build"],
+        "options": {
+            "envFile": "apps/dashboard/.env",
+            "command": "grafana server --homepath=/usr/local/opt/grafana/share/grafana"
+        }
+    },
     "dev": {
       "command": "nx watch -p {projectName} -- nx run {projectName}:build"
     },

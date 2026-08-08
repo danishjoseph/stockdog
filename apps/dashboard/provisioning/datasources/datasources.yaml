@@ -11,5 +11,6 @@ datasources:
       password: $DB_PASSWORD
     uid: edjh8vws68hdse
     jsonData:
+      database: $DB_NAME
       sslmode: disable # Add this line to disable SSL
     isDefault: true

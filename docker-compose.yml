@@ -38,6 +38,7 @@ services:
     depends_on:
       - database
     environment:
+      DASHBOARDS_PATH: ${DASHBOARDS_PATH}
       GF_SECURITY_ADMIN_USER: ${GF_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GF_PASSWORD}
       DB_USERNAME: ${DB_USERNAME}
