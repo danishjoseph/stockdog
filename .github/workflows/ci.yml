@@ -20,23 +20,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Set up NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install test dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint code
-        run: yarn nx run-many -t lint
+        run: pnpm exec nx run-many -t lint
 
       - name: Run Unit tests
-        run: yarn nx run-many -t test
+        run: pnpm exec nx run-many -t test
 
   build:
     name: Publish Docker image
@@ -49,16 +49,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Set up NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
 
       - name: Install package dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile
 
       - name: Set up Go and install jb (for dashboard only)
         if: matrix.app == 'dashboard'
@@ -78,10 +79,10 @@ jobs:
 
       - name: Run jsonnet-bundler (jb)
         if: matrix.app == 'dashboard'
-        run: yarn nx run ${{ matrix.app }}:install
+        run: pnpm exec nx run ${{ matrix.app }}:install
 
       - name: Build application bundle
-        run: yarn nx run ${{ matrix.app }}:build
+        run: pnpm exec nx run ${{ matrix.app }}:build
 
       - name: Generate version number
         id: version

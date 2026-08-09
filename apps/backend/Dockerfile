@@ -5,9 +5,9 @@ WORKDIR /app
 
 RUN corepack enable 
 
-COPY package.json yarn.lock .yarnrc.yml ./
+COPY package.json pnpm-lock.yaml ./
 
-RUN yarn workspaces focus --production && yarn cache clean 
+RUN pnpm install --frozen-lockfile --prod
 
 COPY dist/apps/backend ./
 
