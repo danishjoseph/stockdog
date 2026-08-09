@@ -1,0 +1,26 @@
+{
+  "name": "cli",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/cli/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "webpackConfig": "{projectRoot}/webpack.config.js",
+        "outputPath": "dist/apps/cli"
+      }
+    },
+    "run": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["build"],
+        "options": {
+           "commands": ["node dist/apps/cli/main.js"],
+            "envFile": "apps/cli/.env",
+            "forwardAllArgs": true
+        }
+    }
+  }
+}

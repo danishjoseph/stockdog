@@ -4,9 +4,10 @@ import {
   AssetManagement,
   BseService,
   DataSyncService,
+  HistoricalDataSyncService,
   NseService,
 } from './services';
-import { HttpClient } from './utils/httpClient';
+import { HttpClient } from './utils/http-client';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -15,8 +16,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     HttpClient,
     AssetManagement,
     DataSyncService,
+    HistoricalDataSyncService,
     BseService,
     NseService,
   ],
+  exports: [HistoricalDataSyncService],
 })
 export class DataSyncModule {}

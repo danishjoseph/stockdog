@@ -1,13 +1,12 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
-import { AxiosHeaders } from 'axios';
-import { PassThrough } from 'stream';
-import * as unzipper from 'unzipper';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { BseService } from './bse.service';
 import { NseService } from './nse.service';
-import { HttpClient } from '../utils/httpClient';
+import { HttpClient } from '../utils/http-client';
 import { getCurrentDate, getUtcTradeDays } from '../utils/trade-days';
 import { CronJob } from 'cron';
+
+const CRON_SCHEDULE = process.env.CRON_SCHEDULE;
 
 @Injectable()
 export class DataSyncService implements OnModuleInit {
@@ -19,10 +18,12 @@ export class DataSyncService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    const cronSchedule = process.env.CRON_SCHEDULE;
+    if (!CRON_SCHEDULE) {
+      return;
+    }
     const timeZone = process.env.TZ;
     const job = new CronJob(
-      cronSchedule,
+      CRON_SCHEDULE,
       () => this.execute(),
       null,
       true,
@@ -34,7 +35,6 @@ export class DataSyncService implements OnModuleInit {
 
   private readonly logger = new Logger(DataSyncService.name);
 
-  @Cron(process.env.CRON_SCHEDULE, { timeZone: process.env.TZ })
   async execute() {
     const currentDate = getCurrentDate();
     this.logger.log(
@@ -60,28 +60,11 @@ export class DataSyncService implements OnModuleInit {
     await this.bseService.handleAssetData(assetResponse.data);
     const tradeResponse = await this.httpClient.get(tradingURL, headers);
     await this.bseService.handleTradingData(tradeResponse.data);
-    await this.handleDeliveryDataBSE(deliveryURL, headers);
+    const deliveryResponse = await this.httpClient.get(deliveryURL, headers);
+    await this.bseService.handleDeliveryDataZip(deliveryResponse.data);
     const end = performance.now();
     const timeTaken = end - start;
     this.logger.log(`BSE Data Sync Finished. Time taken: ${timeTaken} ms`);
-  }
-
-  async handleDeliveryDataBSE(url: string, headers: AxiosHeaders) {
-    const response = await this.httpClient.get(url, headers);
-    response.data.pipe(unzipper.Parse()).on('entry', async (entry) => {
-      const fileName = entry.path;
-      if (fileName.includes('SCBSEALL')) {
-        const dataStream = new PassThrough();
-        entry
-          .on('data', (chunk) => dataStream.write(chunk))
-          .on('end', async () => {
-            dataStream.end();
-            await this.bseService.handleDeliveryData(dataStream);
-          });
-      } else {
-        entry.autodrain();
-      }
-    });
   }
 
   async handleNSEDataSync(date: Date) {

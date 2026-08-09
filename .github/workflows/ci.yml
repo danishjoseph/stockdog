@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: [backend, dashboard]
+        app: [backend, dashboard, cli]
 
     steps:
       - uses: actions/checkout@v6

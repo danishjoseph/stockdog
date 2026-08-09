@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Exchange } from '@stockdog/asset-management';
 import { AxiosHeaders } from 'axios';
-import { Stream } from 'stream';
+import { PassThrough, Stream } from 'stream';
+import * as unzipper from 'unzipper';
 import { AssetManagement } from './asset-management.service';
 import { AssetDto, DeliveryDataDTO, TradingDataDTO } from '../dto';
 import { CSV_SEPARATOR } from '../types/enums/csv';
+import { HttpClient } from '../utils/http-client';
 import parseCSV from '../utils/csv-parser';
 enum STOCK_DATA_CSV_HEADERS {
   SYMBOL = 'Security Id',
@@ -40,9 +42,43 @@ enum DELIVERY_DATA_CSV_HEADERS {
 
 @Injectable()
 export class BseService {
-  constructor(private readonly AM: AssetManagement) {}
+  constructor(
+    private readonly AM: AssetManagement,
+    private readonly httpClient: HttpClient,
+  ) {}
 
   private logger = new Logger(BseService.name);
+
+  async handleDeliveryDataZip(zipStream: Stream): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      let processing: Promise<void> = Promise.resolve();
+      zipStream
+        .pipe(unzipper.Parse())
+        .on('entry', (entry) => {
+          const fileName = entry.path;
+          if (fileName.includes('SCBSEALL')) {
+            const dataStream = new PassThrough();
+            entry
+              .on('data', (chunk) => dataStream.write(chunk))
+              .on('end', () => {
+                dataStream.end();
+                processing = this.handleDeliveryData(dataStream);
+              });
+          } else {
+            entry.autodrain();
+          }
+        })
+        .on('error', (error) => reject(error))
+        .on('end', async () => {
+          try {
+            await processing;
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+    });
+  }
 
   async handleAssetData(csvData: Stream) {
     const bseExchange = await this.AM.exchangeService.findOrCreateExchange(

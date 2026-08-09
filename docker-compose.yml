@@ -27,6 +27,24 @@ services:
     depends_on:
       - database
 
+  cli:
+    build:
+      context: .
+      dockerfile: ./apps/cli/Dockerfile
+    profiles: ['cli']
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      TZ: ${TZ}
+      SYNC_CONCURRENCY: ${SYNC_CONCURRENCY}
+      SYNC_DELAY_MS: ${SYNC_DELAY_MS}
+      SYNC_RETRIES: ${SYNC_RETRIES}
+    depends_on:
+      - database
+
   dashboard:
     build:
       context: .
