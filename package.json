@@ -1,6 +1,6 @@
 {
   "name": "stockdog",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "equity insights app using nestjs",
   "author": "danisjoseph",
   "private": true,
