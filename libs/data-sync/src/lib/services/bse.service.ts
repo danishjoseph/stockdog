@@ -9,11 +9,11 @@ import { CSV_SEPARATOR } from '../types/enums/csv';
 import { HttpClient } from '../utils/http-client';
 import parseCSV from '../utils/csv-parser';
 enum STOCK_DATA_CSV_HEADERS {
-  SYMBOL = 'Security Id',
-  NAME_OF_COMPANY = 'Issuer Name',
-  ISIN_NUMBER = 'ISIN No',
-  FACE_VALUE = 'Face Value',
-  INDUSTRY = 'Industry New Name',
+  SYMBOL = 'SCRIP_ID',
+  NAME_OF_COMPANY = 'Scrip_Name',
+  ISIN_NUMBER = 'ISIN_NUMBER',
+  FACE_VALUE = 'FACE_VALUE',
+  INDUSTRY = 'INDUSTRY',
   SECTOR = 'Sector Name',
   ASSET_EXCHANGE_CODE = 'Security Code',
 }
@@ -208,7 +208,7 @@ export class BseService {
     });
 
     return {
-      assetUrl: `https://api.bseindia.com/BseIndiaAPI/api/LitsOfScripCSVDownload/w?segment=Equity&status=Active&industry=&Group=&Scripcode=`,
+      assetUrl: `https://api.bseindia.com/BseIndiaAPI/api/ListofScripData_new/w?Group=&Scripcode=&segment=Equity&status=Active&scripName=`,
       deliveryURL: `https://www.bseindia.com/BSEDATA/gross/${year}/SCBSEALL${day}${month}.zip`,
       tradingURL: `https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_${year}${month}${day}_F_0000.CSV`,
       headers,
