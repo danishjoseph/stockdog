@@ -92,6 +92,15 @@ export class BseService {
     });
     const records = JSON.parse(Buffer.concat(chunks).toString('utf8'));
     for (const record of records) {
+      const isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
+      if (!isin) {
+        this.logger.warn(
+          `Skipping BSE asset with missing ISIN: ${
+            record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY]
+          } (${record[STOCK_DATA_CSV_HEADERS.ASSET_EXCHANGE_CODE]})`,
+        );
+        continue;
+      }
       const assetData = new AssetDto();
       assetData.name = record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY];
       assetData.isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];

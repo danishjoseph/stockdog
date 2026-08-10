@@ -47,6 +47,15 @@ export class NseService {
     );
     const parser = await parseCSV(csvData, CSV_SEPARATOR.COMMA);
     for await (const record of parser) {
+      const isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
+      if (!isin) {
+        this.logger.warn(
+          `Skipping NSE asset with missing ISIN: ${
+            record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY]
+          }`,
+        );
+        continue;
+      }
       const assetData = new AssetDto();
       assetData.name = record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY];
       assetData.isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
