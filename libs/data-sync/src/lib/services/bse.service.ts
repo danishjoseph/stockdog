@@ -84,8 +84,14 @@ export class BseService {
     const bseExchange = await this.AM.exchangeService.findOrCreateExchange(
       Exchange.BSE,
     );
-    const parser = await parseCSV(csvData, CSV_SEPARATOR.COMMA);
-    for await (const record of parser) {
+    const chunks: Buffer[] = [];
+    await new Promise<void>((resolve, reject) => {
+      csvData.on('data', (chunk) => chunks.push(chunk));
+      csvData.on('end', () => resolve());
+      csvData.on('error', reject);
+    });
+    const records = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    for (const record of records) {
       const assetData = new AssetDto();
       assetData.name = record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY];
       assetData.isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
@@ -93,8 +99,8 @@ export class BseService {
         record[STOCK_DATA_CSV_HEADERS.FACE_VALUE],
       );
       assetData.symbol = record[STOCK_DATA_CSV_HEADERS.SYMBOL];
-      assetData.industry = record[STOCK_DATA_CSV_HEADERS.INDUSTRY];
-      assetData.sector = record[STOCK_DATA_CSV_HEADERS.SECTOR];
+      assetData.industry = record[STOCK_DATA_CSV_HEADERS.INDUSTRY] ?? null;
+      assetData.sector = record[STOCK_DATA_CSV_HEADERS.SECTOR] ?? null;
       assetData.assetExchangeCode =
         record[STOCK_DATA_CSV_HEADERS.ASSET_EXCHANGE_CODE];
       await this.AM.assetService.createAsset(assetData, bseExchange);
