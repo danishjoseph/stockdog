@@ -9,13 +9,13 @@ import { CSV_SEPARATOR } from '../types/enums/csv';
 import { HttpClient } from '../utils/http-client';
 import parseCSV from '../utils/csv-parser';
 enum STOCK_DATA_CSV_HEADERS {
-  SYMBOL = 'SCRIP_CD',
+  SYMBOL = 'scrip_id',
   NAME_OF_COMPANY = 'Scrip_Name',
   ISIN_NUMBER = 'ISIN_NUMBER',
   FACE_VALUE = 'FACE_VALUE',
   INDUSTRY = 'INDUSTRY',
   SECTOR = 'Sector Name',
-  ASSET_EXCHANGE_CODE = 'Security Code',
+  ASSET_EXCHANGE_CODE = 'SCRIP_CD',
 }
 
 enum TRADE_DATA_CSV_HEADERS {
