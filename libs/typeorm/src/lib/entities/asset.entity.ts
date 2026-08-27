@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { AssetExchange } from './asset-exchange.entity';
+import { CorporateAction } from './corporate-action.entity';
 
 enum AssetType {
   EQUITY = 'EQUITY',
@@ -34,4 +35,7 @@ export class Asset {
 
   @OneToMany(() => AssetExchange, (assetExchange) => assetExchange.asset)
   assetExchanges: AssetExchange[];
+
+  @OneToMany(() => CorporateAction, (corporateAction) => corporateAction.asset)
+  corporateActions: CorporateAction[];
 }

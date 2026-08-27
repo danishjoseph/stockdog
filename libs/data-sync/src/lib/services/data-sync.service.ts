@@ -47,6 +47,8 @@ export class DataSyncService implements OnModuleInit {
       await this.handleBSEDataSync(new Date(dateStr));
       await this.handleNSEDataSync(new Date(dateStr));
     }
+
+    await this.handleCorporateActionSync();
   }
 
   async handleBSEDataSync(date: Date) {
@@ -81,5 +83,66 @@ export class DataSyncService implements OnModuleInit {
     const end = performance.now();
     const timeTaken = end - start;
     this.logger.log(`NSE Data Sync Finished. Time taken: ${timeTaken} ms`);
+  }
+
+  async handleCorporateActionSync() {
+    const start = performance.now();
+    this.logger.log('Corporate Action Sync Started');
+
+    try {
+      await this.handleNSECorporateActions();
+    } catch (error) {
+      this.logger.error(`NSE Corporate Action sync failed: ${error.message}`);
+    }
+
+    try {
+      await this.handleBSECorporateActions();
+    } catch (error) {
+      this.logger.error(`BSE Corporate Action sync failed: ${error.message}`);
+    }
+
+    const end = performance.now();
+    const timeTaken = end - start;
+    this.logger.log(
+      `Corporate Action Sync Finished. Time taken: ${timeTaken} ms`,
+    );
+  }
+
+  private async handleNSECorporateActions() {
+    const nseHeaders = new AxiosHeaders({
+      Accept: '*/*',
+      Connection: 'keep-alive',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+      Referer: 'https://www.nseindia.com/',
+    });
+
+    const response = await this.httpClient.get(
+      'https://www.nseindia.com/api/corporates-corporateActions?index=equities',
+      nseHeaders,
+    );
+
+    if (Array.isArray(response.data)) {
+      await this.nseService.handleCorporateActionData(response.data);
+    }
+  }
+
+  private async handleBSECorporateActions() {
+    const bseHeaders = new AxiosHeaders({
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3',
+      Accept: 'application/json, text/plain, */*',
+      Referer: 'https://www.bseindia.com/',
+      Origin: 'https://www.bseindia.com',
+    });
+
+    const response = await this.httpClient.get(
+      'https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?ddlcategorys=E&ddlindustrys=&segment=0&strSearch=D',
+      bseHeaders,
+    );
+
+    if (Array.isArray(response.data)) {
+      await this.bseService.handleCorporateActionData(response.data);
+    }
   }
 }

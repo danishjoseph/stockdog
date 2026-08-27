@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Exchange } from '@stockdog/asset-management';
+import { CorporateActionDto, Exchange } from '@stockdog/asset-management';
+import { CorporateActionType } from '@stockdog/typeorm';
 import { AxiosHeaders } from 'axios';
 import { PassThrough, Stream } from 'stream';
 import * as unzipper from 'unzipper';
@@ -38,6 +39,21 @@ enum DELIVERY_DATA_CSV_HEADERS {
   DATE = 'DATE',
   DELIV_QTY = 'DELIVERY QTY',
   DELIV_PER = 'DELV. PER.',
+}
+
+enum BSE_CORPORATE_ACTION_HEADERS {
+  SCRIP_CODE = 'scrip_code',
+  SHORT_NAME = 'short_name',
+  EX_DATE = 'Ex_date',
+  PURPOSE = 'Purpose',
+  RECORD_DATE = 'RD_Date',
+  BC_START = 'BCRD_FROM',
+  BC_END = 'BCRD_TO',
+  ND_START = 'ND_START_DATE',
+  ND_END = 'ND_END_DATE',
+  PAYMENT_DATE = 'payment_date',
+  EXDATE_COMPACT = 'exdate',
+  LONG_NAME = 'long_name',
 }
 
 @Injectable()
@@ -211,9 +227,135 @@ export class BseService {
     }
   }
 
+  async handleCorporateActionData(records: Record<string, any>[]) {
+    const bseExchange = await this.AM.exchangeService.findOrCreateExchange(
+      Exchange.BSE,
+    );
+
+    for (const record of records) {
+      const purpose =
+        record[BSE_CORPORATE_ACTION_HEADERS.PURPOSE]?.toLowerCase() || '';
+
+      const isSplit = purpose.includes('stock split');
+      const isBonus = purpose.includes('bonus');
+
+      if (!isSplit && !isBonus) {
+        continue;
+      }
+
+      const scripCode = String(record[BSE_CORPORATE_ACTION_HEADERS.SCRIP_CODE]);
+      const assetExchange = await this.AM.assetExchangeService.findBySymbol(
+        scripCode,
+        bseExchange,
+        ['asset'],
+      );
+
+      if (!assetExchange?.asset) {
+        this.logger.warn(
+          `Asset not found for BSE scrip code ${scripCode} (${record[BSE_CORPORATE_ACTION_HEADERS.SHORT_NAME]})`,
+        );
+        continue;
+      }
+
+      const dto = new CorporateActionDto();
+      dto.asset = assetExchange.asset;
+      dto.effectiveDate = this.parseBseDate(
+        record[BSE_CORPORATE_ACTION_HEADERS.EX_DATE],
+      );
+      const rdDate = record[BSE_CORPORATE_ACTION_HEADERS.RECORD_DATE];
+      dto.recordDate = rdDate ? this.parseBseDate(rdDate) : undefined;
+      dto.description = record[BSE_CORPORATE_ACTION_HEADERS.PURPOSE];
+
+      if (isSplit) {
+        dto.type = CorporateActionType.SPLIT;
+        const parsed = this.parseSplitRatio(
+          record[BSE_CORPORATE_ACTION_HEADERS.PURPOSE],
+        );
+        if (parsed) {
+          dto.oldFaceValue = parsed.oldFaceValue;
+          dto.newFaceValue = parsed.newFaceValue;
+        } else {
+          this.logger.warn(
+            `Could not parse BSE split ratio from: ${record[BSE_CORPORATE_ACTION_HEADERS.PURPOSE]}`,
+          );
+          continue;
+        }
+      } else if (isBonus) {
+        dto.type = CorporateActionType.BONUS;
+        const parsed = this.parseBonusRatio(
+          record[BSE_CORPORATE_ACTION_HEADERS.PURPOSE],
+        );
+        if (parsed) {
+          dto.bonusNumerator = parsed.numerator;
+          dto.bonusDenominator = parsed.denominator;
+        } else {
+          this.logger.warn(
+            `Could not parse BSE bonus ratio from: ${record[BSE_CORPORATE_ACTION_HEADERS.PURPOSE]}`,
+          );
+          continue;
+        }
+      }
+
+      await this.AM.corporateActionService.recordCorporateAction(dto);
+    }
+  }
+
+  private parseBseDate(dateStr: string): string {
+    const months: Record<string, string> = {
+      Jan: '01',
+      Feb: '02',
+      Mar: '03',
+      Apr: '04',
+      May: '05',
+      Jun: '06',
+      Jul: '07',
+      Aug: '08',
+      Sep: '09',
+      Oct: '10',
+      Nov: '11',
+      Dec: '12',
+    };
+    const parts = dateStr.trim().split(' ');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = months[parts[1]] || '01';
+      const year = parts[2];
+      return `${year}-${month}-${day}`;
+    }
+    return dateStr;
+  }
+
+  private parseSplitRatio(
+    purpose: string,
+  ): { oldFaceValue: number; newFaceValue: number } | null {
+    const match = purpose.match(
+      /From\s+Rs\.?\s*(\d+(?:\.\d+)?)\s*\/?\s*to\s+(?:Rs\.?\s*)?(\d+(?:\.\d+)?)\s*\/?/i,
+    );
+    if (match) {
+      return {
+        oldFaceValue: parseFloat(match[1]),
+        newFaceValue: parseFloat(match[2]),
+      };
+    }
+    return null;
+  }
+
+  private parseBonusRatio(
+    purpose: string,
+  ): { numerator: number; denominator: number } | null {
+    const match = purpose.match(/Bonus\s+(\d+)\s*:\s*(\d+)/i);
+    if (match) {
+      return {
+        numerator: parseInt(match[1]),
+        denominator: parseInt(match[2]),
+      };
+    }
+    return null;
+  }
+
   generateFileUrls(date: Date) {
     const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2); // Months are 0-based in JavaScript
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
     const day = ('0' + date.getDate()).slice(-2);
     const headers = new AxiosHeaders({
       'User-Agent':
@@ -225,6 +367,7 @@ export class BseService {
       assetUrl: `https://api.bseindia.com/BseIndiaAPI/api/ListofScripData_new/w?Group=&Scripcode=&segment=Equity&status=Active&scripName=`,
       deliveryURL: `https://www.bseindia.com/BSEDATA/gross/${year}/SCBSEALL${day}${month}.zip`,
       tradingURL: `https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_${year}${month}${day}_F_0000.CSV`,
+      corporateActionUrl: `https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?ddlcategorys=E&ddlindustrys=&segment=0&strSearch=D`,
       headers,
     };
   }

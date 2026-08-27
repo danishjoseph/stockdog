@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Exchange } from '@stockdog/asset-management';
+import { CorporateActionDto, Exchange } from '@stockdog/asset-management';
+import { CorporateActionType } from '@stockdog/typeorm';
 import { AxiosHeaders } from 'axios';
 import { Stream } from 'stream';
 import { AssetManagement } from './asset-management.service';
@@ -34,6 +35,23 @@ enum DELIVERY_DATA_CSV_HEADERS {
   DATE = 'DATE1',
   DELIV_QTY = 'DELIV_QTY',
   DELIV_PER = 'DELIV_PER',
+}
+
+enum NSE_CORPORATE_ACTION_HEADERS {
+  SYMBOL = 'symbol',
+  COMPANY = 'comp',
+  ISIN = 'isin',
+  SERIES = 'series',
+  FACE_VALUE = 'faceVal',
+  EX_DATE = 'exDate',
+  RECORD_DATE = 'recDate',
+  SUBJECT = 'subject',
+  BC_START_DATE = 'bcStartDate',
+  BC_END_DATE = 'bcEndDate',
+  ND_START_DATE = 'ndStartDate',
+  ND_END_DATE = 'ndEndDate',
+  IND = 'ind',
+  CA_BROADCAST_DATE = 'caBroadcastDate',
 }
 
 @Injectable()
@@ -134,9 +152,136 @@ export class NseService {
     }
   }
 
+  async handleCorporateActionData(records: Record<string, any>[]) {
+    const nseExchange = await this.AM.exchangeService.findOrCreateExchange(
+      Exchange.NSE,
+    );
+
+    for (const record of records) {
+      const subject =
+        record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT]?.toLowerCase() || '';
+
+      const isSplit =
+        subject.includes('split') || subject.includes('sub-division');
+      const isBonus = subject.includes('bonus');
+
+      if (!isSplit && !isBonus) {
+        continue;
+      }
+
+      const symbol = record[NSE_CORPORATE_ACTION_HEADERS.SYMBOL];
+      const assetExchange = await this.AM.assetExchangeService.findBySymbol(
+        symbol,
+        nseExchange,
+        ['asset'],
+      );
+
+      if (!assetExchange?.asset) {
+        this.logger.warn(
+          `Asset not found for NSE symbol ${symbol} (ISIN: ${record[NSE_CORPORATE_ACTION_HEADERS.ISIN]})`,
+        );
+        continue;
+      }
+
+      const dto = new CorporateActionDto();
+      dto.asset = assetExchange.asset;
+      dto.effectiveDate = this.parseNseDate(
+        record[NSE_CORPORATE_ACTION_HEADERS.EX_DATE],
+      );
+      const recDate = record[NSE_CORPORATE_ACTION_HEADERS.RECORD_DATE];
+      dto.recordDate = recDate ? this.parseNseDate(recDate) : undefined;
+      dto.description = record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT];
+
+      if (isSplit) {
+        dto.type = CorporateActionType.SPLIT;
+        const parsed = this.parseSplitRatio(
+          record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT],
+        );
+        if (parsed) {
+          dto.oldFaceValue = parsed.oldFaceValue;
+          dto.newFaceValue = parsed.newFaceValue;
+        } else {
+          this.logger.warn(
+            `Could not parse split ratio from: ${record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT]}`,
+          );
+          continue;
+        }
+      } else if (isBonus) {
+        dto.type = CorporateActionType.BONUS;
+        const parsed = this.parseBonusRatio(
+          record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT],
+        );
+        if (parsed) {
+          dto.bonusNumerator = parsed.numerator;
+          dto.bonusDenominator = parsed.denominator;
+        } else {
+          this.logger.warn(
+            `Could not parse bonus ratio from: ${record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT]}`,
+          );
+          continue;
+        }
+      }
+
+      await this.AM.corporateActionService.recordCorporateAction(dto);
+    }
+  }
+
+  private parseNseDate(dateStr: string): string {
+    const months: Record<string, string> = {
+      Jan: '01',
+      Feb: '02',
+      Mar: '03',
+      Apr: '04',
+      May: '05',
+      Jun: '06',
+      Jul: '07',
+      Aug: '08',
+      Sep: '09',
+      Oct: '10',
+      Nov: '11',
+      Dec: '12',
+    };
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = months[parts[1]] || '01';
+      const year = parts[2];
+      return `${year}-${month}-${day}`;
+    }
+    return dateStr;
+  }
+
+  private parseSplitRatio(
+    subject: string,
+  ): { oldFaceValue: number; newFaceValue: number } | null {
+    const match = subject.match(
+      /From\s+Rs\.?\s*(\d+(?:\.\d+)?)\s*\/?-?\s*(?:Per\s+Share)?\s*To\s+(?:Rs\.?\s*)?(\d+(?:\.\d+)?)\s*\/?-?\s*(?:Per\s+Share)?/i,
+    );
+    if (match) {
+      return {
+        oldFaceValue: parseFloat(match[1]),
+        newFaceValue: parseFloat(match[2]),
+      };
+    }
+    return null;
+  }
+
+  private parseBonusRatio(
+    subject: string,
+  ): { numerator: number; denominator: number } | null {
+    const match = subject.match(/Bonus\s+(\d+)\s*:\s*(\d+)/i);
+    if (match) {
+      return {
+        numerator: parseInt(match[1]),
+        denominator: parseInt(match[2]),
+      };
+    }
+    return null;
+  }
+
   generateFileUrls(date: Date) {
     const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2); // Months are 0-based in JavaScript
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
     const day = ('0' + date.getDate()).slice(-2);
 
     const headers = new AxiosHeaders({
@@ -151,6 +296,7 @@ export class NseService {
     return {
       assetUrl: `https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv`,
       tradingURL: `https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_${day}${month}${year}.csv`,
+      corporateActionUrl: `https://www.nseindia.com/api/corporates-corporateActions?index=equities`,
       headers,
     };
   }
