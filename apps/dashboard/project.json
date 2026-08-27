@@ -1,0 +1,49 @@
+{
+  "name": "dashboard",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/dashboard/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "install": {
+      "command": "jb install",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
+    "serve": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["build"],
+        "options": {
+            "envFile": "apps/dashboard/.env",
+            "command": "grafana server --homepath=/usr/local/opt/grafana/share/grafana"
+        }
+    },
+    "dev": {
+      "command": "nx watch -p {projectName} -- nx run {projectName}:build"
+    },
+    "build": {
+      "command": "sh ./build.sh",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
+    "docker": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "commands": [
+          "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
+          "docker run --rm --env-file .env -p ${GF_PORT}:3000 -d -e GF_SECURITY_ADMIN_USER=${GF_USER} -e GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD} --net=stockdog {projectName}:dev"
+        ],
+        "parallel": false
+      }
+    },
+    "docker-compose": {
+      "command": "docker-compose up -d {projectName}",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    }
+  }
+}

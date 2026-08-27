@@ -10,6 +10,7 @@ const config: Config.InitialOptions = {
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageReporters: ['text', 'html'],
   coverageDirectory: '../../coverage/apps/backend',
+  passWithNoTests: true,
 };
 
 export default config;

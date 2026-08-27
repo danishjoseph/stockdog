@@ -1,19 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Exchange } from '@stockdog/asset-management';
 import { AxiosHeaders } from 'axios';
-import { Stream } from 'stream';
+import { PassThrough, Stream } from 'stream';
+import * as unzipper from 'unzipper';
 import { AssetManagement } from './asset-management.service';
-import { AssetDto, DeliveryDataDTO, TradingDataDTO } from './dto';
-import { CSV_SEPARATOR } from './types/enums/csv';
-import parseCSV from './utils/csv-parser';
+import { AssetDto, DeliveryDataDTO, TradingDataDTO } from '../dto';
+import { CSV_SEPARATOR } from '../types/enums/csv';
+import { HttpClient } from '../utils/http-client';
+import parseCSV from '../utils/csv-parser';
 enum STOCK_DATA_CSV_HEADERS {
-  SYMBOL = 'Security Id',
-  NAME_OF_COMPANY = 'Issuer Name',
-  ISIN_NUMBER = 'ISIN No',
-  FACE_VALUE = 'Face Value',
-  INDUSTRY = 'Industry New Name',
+  SYMBOL = 'scrip_id',
+  NAME_OF_COMPANY = 'Scrip_Name',
+  ISIN_NUMBER = 'ISIN_NUMBER',
+  FACE_VALUE = 'FACE_VALUE',
+  INDUSTRY = 'INDUSTRY',
   SECTOR = 'Sector Name',
-  ASSET_EXCHANGE_CODE = 'Security Code',
+  ASSET_EXCHANGE_CODE = 'SCRIP_CD',
 }
 
 enum TRADE_DATA_CSV_HEADERS {
@@ -40,16 +42,65 @@ enum DELIVERY_DATA_CSV_HEADERS {
 
 @Injectable()
 export class BseService {
-  constructor(private readonly AM: AssetManagement) {}
+  constructor(
+    private readonly AM: AssetManagement,
+    private readonly httpClient: HttpClient,
+  ) {}
 
   private logger = new Logger(BseService.name);
+
+  async handleDeliveryDataZip(zipStream: Stream): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      let processing: Promise<void> = Promise.resolve();
+      zipStream
+        .pipe(unzipper.Parse())
+        .on('entry', (entry) => {
+          const fileName = entry.path;
+          if (fileName.includes('SCBSEALL')) {
+            const dataStream = new PassThrough();
+            entry
+              .on('data', (chunk) => dataStream.write(chunk))
+              .on('end', () => {
+                dataStream.end();
+                processing = this.handleDeliveryData(dataStream);
+              });
+          } else {
+            entry.autodrain();
+          }
+        })
+        .on('error', (error) => reject(error))
+        .on('end', async () => {
+          try {
+            await processing;
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+    });
+  }
 
   async handleAssetData(csvData: Stream) {
     const bseExchange = await this.AM.exchangeService.findOrCreateExchange(
       Exchange.BSE,
     );
-    const parser = await parseCSV(csvData, CSV_SEPARATOR.COMMA);
-    for await (const record of parser) {
+    const chunks: Buffer[] = [];
+    await new Promise<void>((resolve, reject) => {
+      csvData.on('data', (chunk) => chunks.push(chunk));
+      csvData.on('end', () => resolve());
+      csvData.on('error', reject);
+    });
+    const records = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    for (const record of records) {
+      const isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
+      if (!isin) {
+        this.logger.warn(
+          `Skipping BSE asset with missing ISIN: ${
+            record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY]
+          } (${record[STOCK_DATA_CSV_HEADERS.ASSET_EXCHANGE_CODE]})`,
+        );
+        continue;
+      }
       const assetData = new AssetDto();
       assetData.name = record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY];
       assetData.isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
@@ -57,8 +108,8 @@ export class BseService {
         record[STOCK_DATA_CSV_HEADERS.FACE_VALUE],
       );
       assetData.symbol = record[STOCK_DATA_CSV_HEADERS.SYMBOL];
-      assetData.industry = record[STOCK_DATA_CSV_HEADERS.INDUSTRY];
-      assetData.sector = record[STOCK_DATA_CSV_HEADERS.SECTOR];
+      assetData.industry = record[STOCK_DATA_CSV_HEADERS.INDUSTRY] ?? null;
+      assetData.sector = record[STOCK_DATA_CSV_HEADERS.SECTOR] ?? null;
       assetData.assetExchangeCode =
         record[STOCK_DATA_CSV_HEADERS.ASSET_EXCHANGE_CODE];
       await this.AM.assetService.createAsset(assetData, bseExchange);
@@ -167,12 +218,11 @@ export class BseService {
     const headers = new AxiosHeaders({
       'User-Agent':
         'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11',
-      Referer: 'https://www.bseindia.com/markets/marketinfo/BhavCopy.aspx',
-      encoding: null,
+      Referer: 'https://www.bseindia.com/',
     });
 
     return {
-      assetUrl: `https://api.bseindia.com/BseIndiaAPI/api/LitsOfScripCSVDownload/w?segment=Equity&status=Active&industry=&Group=&Scripcode=`,
+      assetUrl: `https://api.bseindia.com/BseIndiaAPI/api/ListofScripData_new/w?Group=&Scripcode=&segment=Equity&status=Active&scripName=`,
       deliveryURL: `https://www.bseindia.com/BSEDATA/gross/${year}/SCBSEALL${day}${month}.zip`,
       tradingURL: `https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_${year}${month}${day}_F_0000.CSV`,
       headers,

@@ -2,11 +2,11 @@ import { getCurrentDate, getUtcTradeDays, tradingHolidays } from './trade-days';
 
 describe('getUtcTradeDays', () => {
   it('should return an array of trade days between the start and end dates', () => {
-    const startDate = new Date('2024-01-01');
-    const endDate = new Date('2024-12-31');
+    const startDate = new Date('2025-01-01');
+    const endDate = new Date('2025-12-31');
     const tradeDays = getUtcTradeDays(startDate, endDate);
 
-    expect(tradeDays).toHaveLength(246); // Expected number of trade days in 2024
+    expect(tradeDays).toHaveLength(247); // Expected number of trade days in 2025
 
     // Ensure all trade days fall within the specified range
     tradeDays.forEach((tradeDay) => {
@@ -15,8 +15,8 @@ describe('getUtcTradeDays', () => {
   });
 
   it('should exclude trading holidays from the result', () => {
-    const startDate = new Date('2024-01-01');
-    const endDate = new Date('2024-12-31');
+    const startDate = new Date('2025-01-01');
+    const endDate = new Date('2025-12-31');
     const tradeDays = getUtcTradeDays(startDate, endDate);
 
     // Ensure no trading holidays are present in the trade days array
@@ -27,7 +27,7 @@ describe('getUtcTradeDays', () => {
   });
 
   it('should return single trade day if start and end dates are the same', () => {
-    const date = new Date('2024-01-01');
+    const date = new Date('2025-01-01');
     const tradeDays = getUtcTradeDays(date, date);
 
     expect(tradeDays).toHaveLength(1);

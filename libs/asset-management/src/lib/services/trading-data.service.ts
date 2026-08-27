@@ -17,6 +17,23 @@ export class TradingDataService {
     return tradingData;
   }
 
+  async findDatesByAssetExchange(assetExchangeId: number): Promise<string[]> {
+    const rows: { date: Date }[] = await this.tradingDataRepository
+      .createQueryBuilder('tradingData')
+      .select('DISTINCT tradingData.date', 'date')
+      .where('tradingData.assetExchange = :id', { id: assetExchangeId })
+      .getRawMany();
+
+    return rows.map((row) => this.formatDate(row.date));
+  }
+
+  private formatDate(value: Date): string {
+    const year = value.getUTCFullYear();
+    const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(value.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   async saveTradingData(tradingData: TradingDataDTO): Promise<InsertResult> {
     await validateAndThrowError(tradingData, 'TradingDataDTO');
     return this.tradingDataRepository.upsert(

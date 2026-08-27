@@ -9,8 +9,6 @@ logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 lerna-debug.log*
 
 # OS
@@ -56,7 +54,12 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+#vendor files for grafana-dashboards
+apps/dashboard/vendor/
 
+#nx
+.nx/
 
-.nx/cache
-.nx/workspace-data
+#pnpm
+node_modules
+.pnpm-store

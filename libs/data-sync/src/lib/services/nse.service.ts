@@ -3,9 +3,9 @@ import { Exchange } from '@stockdog/asset-management';
 import { AxiosHeaders } from 'axios';
 import { Stream } from 'stream';
 import { AssetManagement } from './asset-management.service';
-import { AssetDto, DeliveryDataDTO, TradingDataDTO } from './dto';
-import { CSV_SEPARATOR } from './types/enums/csv';
-import parseCSV from './utils/csv-parser';
+import { AssetDto, DeliveryDataDTO, TradingDataDTO } from '../dto';
+import { CSV_SEPARATOR } from '../types/enums/csv';
+import parseCSV from '../utils/csv-parser';
 
 enum STOCK_DATA_CSV_HEADERS {
   SYMBOL = 'SYMBOL',
@@ -47,6 +47,15 @@ export class NseService {
     );
     const parser = await parseCSV(csvData, CSV_SEPARATOR.COMMA);
     for await (const record of parser) {
+      const isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];
+      if (!isin) {
+        this.logger.warn(
+          `Skipping NSE asset with missing ISIN: ${
+            record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY]
+          }`,
+        );
+        continue;
+      }
       const assetData = new AssetDto();
       assetData.name = record[STOCK_DATA_CSV_HEADERS.NAME_OF_COMPANY];
       assetData.isin = record[STOCK_DATA_CSV_HEADERS.ISIN_NUMBER];

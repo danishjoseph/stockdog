@@ -1,20 +1,35 @@
 export const tradingHolidays = [
-  '2024-01-22', // Special Holiday
-  '2024-01-26', // Republic Day
-  '2024-03-08', // Mahashivratri
-  '2024-03-25', // Holi
-  '2024-03-29', // Good Friday
-  '2024-04-11', // Id-Ul-Fitr (Ramadan Eid)
-  '2024-04-17', // Shri Ram Navmi
-  '2024-05-01', // Maharashtra Day
-  '2024-05-20', // General Parliamentary Elections
-  '2024-06-17', // Bakri Id
-  '2024-07-17', // Moharram
-  '2024-08-15', // Independence Day
-  '2024-10-02', // Mahatma Gandhi Jayanti
-  '2024-11-01', // Diwali Laxmi Pujan*
-  '2024-11-15', // Gurunanak Jayanti
-  '2024-12-25', // Christmas
+  '2025-02-26', // Mahashivratri
+  '2025-03-14', // Holi
+  '2025-03-31', // Id-Ul-Fitr (Ramadan Eid)
+  '2025-04-10', // Shri Mahavir Jayanti
+  '2025-04-14', // Dr. Baba Saheb Ambedkar Jayanti
+  '2025-04-18', // Good Friday
+  '2025-05-01', // Maharashtra Day
+  '2025-08-15', // Independence Day / Parsi New Year
+  '2025-08-27', // Shri Ganesh Chaturthi
+  '2025-10-02', // Mahatma Gandhi Jayanti/Dussehra
+  '2025-10-21', // Diwali Laxmi Pujan
+  '2025-10-22', // Balipratipada
+  '2025-11-05', // Prakash Gurpurb Sri Guru Nanak Dev
+  '2025-12-25', // Christmas
+
+  '2026-01-15', // Municipal Corporation Election - Maharashtra
+  '2026-01-26', // Republic Day
+  '2026-03-03', // Holi
+  '2026-03-26', // Shri Ram Navami
+  '2026-03-31', // Shri Mahavir Jayanti
+  '2026-04-03', // Good Friday
+  '2026-04-14', // Dr. Baba Saheb Ambedkar Jayanti
+  '2026-05-01', // Maharashtra Day
+  '2026-05-28', // Bakri Id
+  '2026-06-26', // Muharram
+  '2026-09-14', // Ganesh Chaturthi
+  '2026-10-02', // Mahatma Gandhi Jayanti
+  '2026-10-20', // Dussehra
+  '2026-11-10', // Diwali-Balipratipada
+  '2026-11-24', // Prakash Gurpurb Sri Guru Nanak Dev
+  '2026-12-25', // Christmas
 ];
 export const getUtcTradeDays = (startDate: Date, endDate: Date): Date[] => {
   const workdays: Date[] = [];

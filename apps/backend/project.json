@@ -19,23 +19,19 @@
         "buildTarget": "{projectName}:build"
       }
     },
-    "docker-build": {
-      "dependsOn": ["build"],
-      "command": "docker build -f {projectRoot}/Dockerfile -t {args.tag} ."
-    },
     "docker": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
         "commands": [
           "docker build -f {projectRoot}/Dockerfile -t {projectName}:dev .",
-          "docker run --rm --env-file {projectRoot}/.env --net=host -d {projectName}:dev"
+          "docker run --rm --env-file .env --net=stockdog {projectName}:dev"
         ],
         "parallel": false
       }
     },
     "docker-compose": {
-      "command": "docker-compose up -d",
+      "command": "docker-compose up -d {projectName}",
       "options": {
         "cwd": "{projectRoot}"
       }

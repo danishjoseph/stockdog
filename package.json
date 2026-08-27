@@ -1,11 +1,10 @@
 {
   "name": "stockdog",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "equity insights app using nestjs",
   "author": "danisjoseph",
   "private": true,
   "license": "UNLICENSED",
-  "scripts": {},
   "dependencies": {
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^3.2.2",
@@ -15,6 +14,8 @@
     "@nestjs/typeorm": "^10.0.2",
     "axios": "^1.6.8",
     "class-validator": "^0.14.1",
+    "commander": "^12.1.0",
+    "cron": "3.2.1",
     "csv-parser": "^3.0.0",
     "pg": "^8.11.5",
     "reflect-metadata": "^0.2.0",
@@ -36,6 +37,7 @@
     "@nx/web": "20.7.1",
     "@nx/webpack": "20.7.1",
     "@nx/workspace": "20.7.1",
+    "@jest/types": "29.6.3",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
@@ -59,5 +61,6 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.7.3",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "packageManager": "pnpm@11.20.0+sha512.9a6f330a95b66446ea088faf1521405a8a01f07fde7124cc9958dfed52d4bb436737e65b08f85f37b46fcba375092558ac51262b816844b22f63406ed166bfee"
 }

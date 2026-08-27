@@ -8,7 +8,7 @@ describe('AssetService', () => {
   let assetService: AssetService;
   let assetRepository: AssetRepository;
   let assetExchangeRepository: AssetExchangeRepository;
-  const assetData: AssetDto = {
+  const assetData: AssetDto = Object.assign(new AssetDto(), {
     isin: 'test-isin',
     name: 'Test Asset',
     symbol: 'TST',
@@ -17,7 +17,7 @@ describe('AssetService', () => {
     industry: '',
     sector: '',
     assetExchanges: [],
-  };
+  });
   const exchange = {
     id: 1,
     name: 'Test Exchange',

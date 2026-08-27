@@ -1,0 +1,73 @@
+services:
+  database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      CRON_SCHEDULE: ${CRON_SCHEDULE}
+      TZ: ${TZ}
+      PORT: ${PORT}
+    ports:
+      - '${PORT}:${PORT}'
+    depends_on:
+      - database
+
+  cli:
+    build:
+      context: .
+      dockerfile: ./apps/cli/Dockerfile
+    profiles: ['cli']
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      TZ: ${TZ}
+      SYNC_CONCURRENCY: ${SYNC_CONCURRENCY}
+      SYNC_DELAY_MS: ${SYNC_DELAY_MS}
+      SYNC_RETRIES: ${SYNC_RETRIES}
+    depends_on:
+      - database
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: ./apps/dashboard/Dockerfile
+    ports:
+      - '${GF_PORT}:3000'
+    volumes:
+      - dashboard:/var/lib/grafana
+    depends_on:
+      - database
+    environment:
+      DASHBOARDS_PATH: ${DASHBOARDS_PATH}
+      GF_SECURITY_ADMIN_USER: ${GF_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_PASSWORD}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+
+volumes:
+  db-data:
+  dashboard:
+
+networks:
+  default:
