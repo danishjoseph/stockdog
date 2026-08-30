@@ -155,6 +155,7 @@ local corporate_action_annotations =
         rawSql: query.candlestick.corporate_actions_by_type(t.type),
       })
       + dashboard.annotation.withType('tags')
+      + dashboard.annotation.withHide(true)
       // + dashboard.annotation.filter.withExclude(false)
       // + dashboard.annotation.filter.withIds([1])
       + dashboard.annotation.withEnable(true),
