@@ -25,6 +25,9 @@ export class CorporateAction {
   @ManyToOne(() => Asset, (asset) => asset.corporateActions, { nullable: false })
   asset: Asset;
 
+  @Column({ type: 'int' })
+  assetId: number;
+
   @Column({ type: 'enum', enum: CorporateActionType })
   type: CorporateActionType;
 

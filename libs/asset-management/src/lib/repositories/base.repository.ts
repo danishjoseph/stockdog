@@ -1,4 +1,5 @@
 import {
+  FindManyOptions,
   FindOneOptions,
   FindOptionsWhere,
   InsertResult,
@@ -10,6 +11,7 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 import { UpsertOptions } from 'typeorm/repository/UpsertOptions';
 
 export interface DatabaseRepository<T extends ObjectLiteral> {
+  find(options: FindManyOptions<T>): Promise<T[]>;
   findAll(): Promise<T[]>;
   findById(id: any): Promise<T | null>;
   create(item: T): Promise<T>;
@@ -23,13 +25,17 @@ export interface DatabaseRepository<T extends ObjectLiteral> {
   findOne(options: FindOneOptions<T>): Promise<T | null>;
 }
 
-export abstract class BaseRepository<T extends ObjectLiteral>
-  implements DatabaseRepository<T>
-{
+export abstract class BaseRepository<
+  T extends ObjectLiteral,
+> implements DatabaseRepository<T> {
   constructor(protected readonly repository: Repository<T>) {}
 
   findOne(options: FindOneOptions<T>): Promise<T | null> {
     return this.repository.findOne(options);
+  }
+
+  find(options: FindManyOptions<T>): Promise<T[]> {
+    return this.repository.find(options);
   }
 
   async findAll(): Promise<T[]> {
@@ -37,7 +43,7 @@ export abstract class BaseRepository<T extends ObjectLiteral>
   }
   // Todo: Remove this method
   async findById(id: any): Promise<T | null> {
-    return this.repository.findOne(id);
+    return this.repository.findOneBy({ id } as FindOptionsWhere<T>);
   }
 
   async findOneBy(
@@ -52,7 +58,9 @@ export abstract class BaseRepository<T extends ObjectLiteral>
   }
 
   async update(id: string, item: T): Promise<T | null> {
-    const existingItem = await this.repository.findOne(id as FindOneOptions<T>);
+    const existingItem = await this.repository.findOneBy({
+      id,
+    } as unknown as FindOptionsWhere<T>);
     if (!existingItem) {
       return null;
     }

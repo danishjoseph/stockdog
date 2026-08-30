@@ -48,7 +48,7 @@ export class DataSyncService implements OnModuleInit {
       await this.handleNSEDataSync(new Date(dateStr));
     }
 
-    await this.handleCorporateActionSync();
+    await this.handleCorporateActionSync(currentDate);
   }
 
   async handleBSEDataSync(date: Date) {
@@ -85,18 +85,18 @@ export class DataSyncService implements OnModuleInit {
     this.logger.log(`NSE Data Sync Finished. Time taken: ${timeTaken} ms`);
   }
 
-  async handleCorporateActionSync() {
+  async handleCorporateActionSync(date: Date) {
     const start = performance.now();
     this.logger.log('Corporate Action Sync Started');
 
     try {
-      await this.handleNSECorporateActions();
+      await this.handleNSECorporateActions(date);
     } catch (error) {
       this.logger.error(`NSE Corporate Action sync failed: ${error.message}`);
     }
 
     try {
-      await this.handleBSECorporateActions();
+      await this.handleBSECorporateActions(date);
     } catch (error) {
       this.logger.error(`BSE Corporate Action sync failed: ${error.message}`);
     }
@@ -108,41 +108,31 @@ export class DataSyncService implements OnModuleInit {
     );
   }
 
-  private async handleNSECorporateActions() {
-    const nseHeaders = new AxiosHeaders({
-      Accept: '*/*',
-      Connection: 'keep-alive',
-      'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
-      Referer: 'https://www.nseindia.com/',
-    });
+  private async handleNSECorporateActions(date: Date) {
+    const { corporateActionUrl, headers } =
+      this.nseService.generateFileUrls(date);
 
-    const response = await this.httpClient.get(
-      'https://www.nseindia.com/api/corporates-corporateActions?index=equities',
-      nseHeaders,
+    const data = await this.httpClient.getJson<any[]>(
+      corporateActionUrl,
+      headers,
     );
 
-    if (Array.isArray(response.data)) {
-      await this.nseService.handleCorporateActionData(response.data);
+    if (Array.isArray(data)) {
+      await this.nseService.handleCorporateActionData(data);
     }
   }
 
-  private async handleBSECorporateActions() {
-    const bseHeaders = new AxiosHeaders({
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3',
-      Accept: 'application/json, text/plain, */*',
-      Referer: 'https://www.bseindia.com/',
-      Origin: 'https://www.bseindia.com',
-    });
+  private async handleBSECorporateActions(date: Date) {
+    const { corporateActionUrl, headers } =
+      this.bseService.generateFileUrls(date);
 
-    const response = await this.httpClient.get(
-      'https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?ddlcategorys=E&ddlindustrys=&segment=0&strSearch=D',
-      bseHeaders,
+    const data = await this.httpClient.getJson<any[]>(
+      corporateActionUrl,
+      headers,
     );
 
-    if (Array.isArray(response.data)) {
-      await this.bseService.handleCorporateActionData(response.data);
+    if (Array.isArray(data)) {
+      await this.bseService.handleCorporateActionData(data);
     }
   }
 }

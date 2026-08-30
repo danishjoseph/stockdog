@@ -1,6 +1,22 @@
 local getAllStocks() =
   local query = |||
-    WITH LatestDate AS (
+    WITH LatestAssets AS (
+        SELECT
+            a."id" AS asset_id,
+            a."isin",
+            a."symbol",
+            a."name",
+            a."industry",
+            a."sector"
+        FROM
+            assets a
+        WHERE
+            a."id" NOT IN (
+                SELECT "previousAssetId" FROM assets WHERE "previousAssetId" IS NOT NULL
+            )
+    ),
+
+    LatestDate AS (
         SELECT
             "ae"."assetId" AS asset_id,
             MAX(trading_data."date") AS latest_date
@@ -62,11 +78,11 @@ local getAllStocks() =
     )
 
     SELECT
-        assets."isin",
-        assets."symbol",
-        assets."name",
-        assets."industry",
-        assets."sector",
+        LA."isin",
+        LA."symbol",
+        LA."name",
+        LA."industry",
+        LA."sector",
         EI.exchange AS exchange,
         AD.close AS "Price",
         AD.avg_trade_size AS "Average Trade Size",
@@ -79,7 +95,7 @@ local getAllStocks() =
     JOIN
         ExchangeInfo EI ON AD.asset_id = EI.asset_id
     JOIN
-        assets ON AD.asset_id = assets.id
+        LatestAssets LA ON AD.asset_id = LA.asset_id
   |||;
   query;
 
@@ -115,6 +131,9 @@ local tradingData(stocks, columns) =
         JOIN delivery_data dd ON dd."assetExchangeId" = ae.id
     WHERE
         a.symbol IN (%s)
+        AND a.id NOT IN (
+            SELECT "previousAssetId" FROM assets WHERE "previousAssetId" IS NOT NULL
+        )
         AND $__timeFilter(td.date)
         AND $__timeFilter(dd.date)
     GROUP BY

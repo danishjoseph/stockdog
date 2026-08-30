@@ -32,7 +32,9 @@ describe('AssetService', () => {
           provide: AssetRepository,
           useValue: {
             findOne: jest.fn(),
+            find: jest.fn(),
             create: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
@@ -58,6 +60,7 @@ describe('AssetService', () => {
     const asset: Asset = {
       id: 1,
       ...assetData,
+      previousAssetId: undefined,
     };
     const assetExchange: AssetExchange = {
       id: 1,
@@ -67,7 +70,11 @@ describe('AssetService', () => {
       deliveryData: [],
     };
 
-    assetRepository.findOne = jest.fn().mockResolvedValueOnce(null);
+    assetRepository.findOne = jest
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+    assetRepository.find = jest.fn().mockResolvedValueOnce([]);
     assetExchangeRepository.findOne = jest.fn().mockResolvedValueOnce(null);
     assetRepository.create = jest.fn().mockResolvedValueOnce(asset);
     assetExchangeRepository.create = jest
@@ -93,10 +100,12 @@ describe('AssetService', () => {
     const asset: Asset = {
       id: 1,
       ...assetData,
+      previousAssetId: undefined,
     };
 
     assetRepository.findOne = jest.fn().mockResolvedValueOnce(asset);
     assetExchangeRepository.findOne = jest.fn().mockResolvedValueOnce(asset);
+    assetRepository.find = jest.fn().mockResolvedValue([]);
 
     await assetService.createAsset(assetData, exchange);
 
@@ -105,6 +114,154 @@ describe('AssetService', () => {
     });
     expect(assetExchangeRepository.findOne).toHaveBeenCalled();
     expect(assetRepository.create).not.toHaveBeenCalled();
+    expect(assetRepository.update).not.toHaveBeenCalled();
     expect(assetExchangeRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('should chain a new asset to the current lineage head on create', async () => {
+    const existing: Asset = {
+      id: 5,
+      ...assetData,
+      previousAssetId: null,
+    };
+    const created: Asset = {
+      id: 6,
+      ...assetData,
+      previousAssetId: 5,
+    };
+
+    assetRepository.findOne = jest.fn().mockResolvedValue(null);
+    assetExchangeRepository.findOne = jest.fn().mockResolvedValueOnce(null);
+    assetRepository.find = jest.fn().mockResolvedValue([existing]);
+    assetRepository.create = jest.fn().mockResolvedValueOnce(created);
+
+    await assetService.createAsset(assetData, exchange);
+
+    expect(assetRepository.find).toHaveBeenCalledWith({
+      where: {
+        assetExchangeCode: assetData.assetExchangeCode,
+        assetExchanges: { exchange: { id: exchange.id } },
+      },
+      relations: { assetExchanges: { exchange: true } },
+      order: { id: 'ASC' },
+    });
+    expect(assetRepository.create).toHaveBeenCalledWith({
+      ...assetData,
+      previousAssetId: 5,
+    });
+    expect(assetExchangeRepository.create).toHaveBeenCalledWith({
+      asset: created,
+      exchange,
+    });
+  });
+
+  it('should not rewrite previousAssetId when the isin already exists', async () => {
+    const root: Asset = {
+      id: 5,
+      ...assetData,
+      previousAssetId: null,
+    };
+    const leaf: Asset = {
+      id: 6,
+      ...assetData,
+      previousAssetId: 5,
+    };
+
+    assetRepository.findOne = jest.fn().mockResolvedValue(leaf);
+    assetExchangeRepository.findOne = jest.fn().mockResolvedValue(leaf);
+    assetRepository.find = jest.fn().mockResolvedValue([root, leaf]);
+
+    await assetService.createAsset(assetData, exchange);
+
+    expect(assetRepository.find).not.toHaveBeenCalled();
+    expect(assetRepository.update).not.toHaveBeenCalled();
+    expect(assetRepository.create).not.toHaveBeenCalled();
+    expect(assetExchangeRepository.create).not.toHaveBeenCalled();
+    expect(leaf.previousAssetId).toBe(5);
+  });
+
+  it('should backfill previousAssetId on an existing unlinked stock', async () => {
+    const root: Asset = {
+      id: 5,
+      ...assetData,
+      previousAssetId: null,
+    };
+    const leaf: Asset = {
+      id: 6,
+      ...assetData,
+      previousAssetId: null,
+    };
+
+    assetRepository.findOne = jest.fn().mockResolvedValueOnce(leaf);
+    assetExchangeRepository.findOne = jest.fn().mockResolvedValueOnce(leaf);
+    assetRepository.find = jest.fn().mockResolvedValue([root, leaf]);
+    assetRepository.update = jest.fn().mockResolvedValue(leaf);
+
+    await assetService.createAsset(assetData, exchange);
+
+    expect(assetRepository.find).toHaveBeenCalledWith({
+      where: {
+        assetExchangeCode: assetData.assetExchangeCode,
+        assetExchanges: { exchange: { id: exchange.id } },
+      },
+      relations: { assetExchanges: { exchange: true } },
+      order: { id: 'ASC' },
+    });
+    expect(assetRepository.update).toHaveBeenCalledWith('6', {
+      previousAssetId: 5,
+    } as Asset);
+    expect(leaf.previousAssetId).toBe(5);
+  });
+
+  it('should not self-link when the existing stock is the only candidate', async () => {
+    const sole: Asset = {
+      id: 6,
+      ...assetData,
+      previousAssetId: null,
+    };
+
+    assetRepository.findOne = jest.fn().mockResolvedValueOnce(sole);
+    assetExchangeRepository.findOne = jest.fn().mockResolvedValueOnce(sole);
+    assetRepository.find = jest.fn().mockResolvedValue([sole]);
+    assetRepository.update = jest.fn();
+
+    await assetService.createAsset(assetData, exchange);
+
+    expect(assetRepository.update).not.toHaveBeenCalled();
+    expect(sole.previousAssetId).toBeNull();
+  });
+
+  it('should scope NSE lineage candidates to the same exchange (symbol match)', async () => {
+    const nseExchange = { id: 1, name: 'NSE', abbreviation: 'NSE' } as Exchange;
+    const oldNse: Asset = {
+      id: 1,
+      ...assetData,
+      previousAssetId: null,
+    };
+    const created: Asset = {
+      id: 3,
+      ...assetData,
+      previousAssetId: 1,
+    };
+
+    assetRepository.findOne = jest.fn().mockResolvedValue(null);
+    assetExchangeRepository.findOne = jest.fn().mockResolvedValue(null);
+    assetRepository.find = jest.fn().mockResolvedValue([oldNse]);
+    assetRepository.create = jest.fn().mockResolvedValueOnce(created);
+
+    await assetService.createAsset(assetData, nseExchange);
+
+    expect(assetRepository.find).toHaveBeenCalledWith({
+      where: {
+        symbol: assetData.symbol,
+        assetExchanges: { exchange: { id: nseExchange.id } },
+      },
+      relations: { assetExchanges: { exchange: true } },
+      order: { id: 'ASC' },
+    });
+    expect(assetRepository.create).toHaveBeenCalledWith({
+      ...assetData,
+      previousAssetId: 1,
+    });
   });
 });

@@ -30,6 +30,13 @@
     WHERE industry ILIKE '%$__searchFilter%' OR sector ILIKE '%$__searchFilter%'
   |||,
   EXCHANGE: |||
+    WITH RECURSIVE family AS (
+      SELECT "id", "isin", "previousAssetId" FROM assets WHERE "isin" = '${isin}'
+      UNION ALL
+      SELECT a."id", a."isin", a."previousAssetId"
+      FROM assets a
+      JOIN family f ON a."id" = f."previousAssetId"
+    )
     SELECT 
       exchange."abbreviation",
       trading_data."date",
@@ -44,6 +51,8 @@
       asset_exchange AS "ae"
     JOIN 
       assets ON "ae"."assetId" = assets.id
+    JOIN
+      family ON family.id = assets.id
     JOIN 
       trading_data ON "ae"."id" = trading_data."assetExchangeId"
     JOIN 
@@ -52,8 +61,7 @@
     JOIN 
       exchange ON "ae"."exchangeId" = exchange.id
     WHERE 
-      assets."isin" = '${isin}'
-      AND exchange."abbreviation" = '${exchange}'
+      exchange."abbreviation" = '${exchange}'
   |||,
 
 }

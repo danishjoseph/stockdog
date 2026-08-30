@@ -18,7 +18,7 @@
         "dependsOn": ["build"],
         "options": {
            "commands": ["node dist/apps/cli/main.js"],
-            "envFile": "apps/cli/.env",
+            "envFile": ".env",
             "forwardAllArgs": true
         }
     }

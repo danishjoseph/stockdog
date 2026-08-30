@@ -91,6 +91,7 @@ export class NseService {
       Exchange.NSE,
     );
     const parser = await parseCSV(csvData, CSV_SEPARATOR.COMMA);
+    const factorCache = new Map<number, number>();
     for await (const record of parser) {
       const symbol = record[TRADE_DATA_CSV_HEADERS.SYMBOL];
       const series = record[TRADE_DATA_CSV_HEADERS.SERIES];
@@ -110,27 +111,31 @@ export class NseService {
 
       const tradingDataDto = new TradingDataDTO();
       tradingDataDto.date = new Date(record[TRADE_DATA_CSV_HEADERS.DATE]);
-      tradingDataDto.open = parseFloat(
-        record[TRADE_DATA_CSV_HEADERS.OPEN_PRICE],
-      );
-      tradingDataDto.high = parseFloat(
-        record[TRADE_DATA_CSV_HEADERS.HIGH_PRICE],
-      );
-      tradingDataDto.low = parseFloat(record[TRADE_DATA_CSV_HEADERS.LOW_PRICE]);
-      tradingDataDto.close = parseFloat(
-        record[TRADE_DATA_CSV_HEADERS.CLOSE_PRICE],
-      );
+      const open = parseFloat(record[TRADE_DATA_CSV_HEADERS.OPEN_PRICE]);
+      const high = parseFloat(record[TRADE_DATA_CSV_HEADERS.HIGH_PRICE]);
+      const low = parseFloat(record[TRADE_DATA_CSV_HEADERS.LOW_PRICE]);
+      const close = parseFloat(record[TRADE_DATA_CSV_HEADERS.CLOSE_PRICE]);
       const lastPrice = parseFloat(record[TRADE_DATA_CSV_HEADERS.LAST_PRICE]);
-      tradingDataDto.lastPrice = Number.isNaN(lastPrice)
-        ? 0
-        : tradingDataDto.close;
-      tradingDataDto.previousClose = parseFloat(
+      const previousClose = parseFloat(
         record[TRADE_DATA_CSV_HEADERS.PREV_CLOSE],
       );
-      tradingDataDto.volume = parseInt(record[TRADE_DATA_CSV_HEADERS.VOLUME]);
-      tradingDataDto.turnover = parseFloat(
-        record[TRADE_DATA_CSV_HEADERS.TURNOVER],
+      const volume = parseInt(record[TRADE_DATA_CSV_HEADERS.VOLUME]);
+      const turnover = parseFloat(record[TRADE_DATA_CSV_HEADERS.TURNOVER]);
+
+      const factor = await this.getSplitFactor(
+        assetExchange.asset.id,
+        tradingDataDto.date,
+        factorCache,
       );
+
+      tradingDataDto.open = open / factor;
+      tradingDataDto.high = high / factor;
+      tradingDataDto.low = low / factor;
+      tradingDataDto.close = close / factor;
+      tradingDataDto.lastPrice = Number.isNaN(lastPrice) ? 0 : lastPrice / factor;
+      tradingDataDto.previousClose = previousClose / factor;
+      tradingDataDto.volume = Math.round(volume * factor);
+      tradingDataDto.turnover = turnover / factor;
       tradingDataDto.totalTrades = parseFloat(
         record[TRADE_DATA_CSV_HEADERS.TOTAL_TRADES],
       );
@@ -139,7 +144,10 @@ export class NseService {
       const deliveryDataDto = new DeliveryDataDTO();
       deliveryDataDto.date = new Date(record[DELIVERY_DATA_CSV_HEADERS.DATE]);
       const qty = parseInt(record[DELIVERY_DATA_CSV_HEADERS.DELIV_QTY]) ?? null;
-      deliveryDataDto.deliveryQuantity = Number.isNaN(qty) ? null : qty;
+      deliveryDataDto.deliveryQuantity =
+        Number.isNaN(qty) || qty == null
+          ? null
+          : Math.round(qty * factor);
       const percent =
         parseInt(record[DELIVERY_DATA_CSV_HEADERS.DELIV_PER]) ?? null;
       deliveryDataDto.deliveryPercentage = Number.isNaN(percent)
@@ -152,6 +160,27 @@ export class NseService {
     }
   }
 
+  /**
+   * Date-aware split adjustment factor for a row, cached per asset within a
+   * single file batch. Prices are divided by this factor and volumes multiplied.
+   */
+  private async getSplitFactor(
+    assetId: number,
+    date: Date,
+    cache: Map<number, number>,
+  ): Promise<number> {
+    const cached = cache.get(assetId);
+    if (cached != null) {
+      return cached;
+    }
+    const factor = await this.AM.corporateActionService.computeFactorForDate(
+      assetId,
+      date,
+    );
+    cache.set(assetId, factor);
+    return factor;
+  }
+
   async handleCorporateActionData(records: Record<string, any>[]) {
     const nseExchange = await this.AM.exchangeService.findOrCreateExchange(
       Exchange.NSE,
@@ -161,11 +190,8 @@ export class NseService {
       const subject =
         record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT]?.toLowerCase() || '';
 
-      const isSplit =
-        subject.includes('split') || subject.includes('sub-division');
-      const isBonus = subject.includes('bonus');
-
-      if (!isSplit && !isBonus) {
+      const action = this.parseNseAction(subject);
+      if (!action) {
         continue;
       }
 
@@ -191,39 +217,67 @@ export class NseService {
       const recDate = record[NSE_CORPORATE_ACTION_HEADERS.RECORD_DATE];
       dto.recordDate = recDate ? this.parseNseDate(recDate) : undefined;
       dto.description = record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT];
+      dto.type = action.type;
 
-      if (isSplit) {
-        dto.type = CorporateActionType.SPLIT;
-        const parsed = this.parseSplitRatio(
-          record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT],
-        );
-        if (parsed) {
-          dto.oldFaceValue = parsed.oldFaceValue;
-          dto.newFaceValue = parsed.newFaceValue;
-        } else {
-          this.logger.warn(
-            `Could not parse split ratio from: ${record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT]}`,
-          );
-          continue;
-        }
-      } else if (isBonus) {
-        dto.type = CorporateActionType.BONUS;
-        const parsed = this.parseBonusRatio(
-          record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT],
-        );
-        if (parsed) {
-          dto.bonusNumerator = parsed.numerator;
-          dto.bonusDenominator = parsed.denominator;
-        } else {
-          this.logger.warn(
-            `Could not parse bonus ratio from: ${record[NSE_CORPORATE_ACTION_HEADERS.SUBJECT]}`,
-          );
-          continue;
-        }
+      switch (action.type) {
+        case CorporateActionType.SPLIT:
+          dto.oldFaceValue = action.ratio.oldFaceValue;
+          dto.newFaceValue = action.ratio.newFaceValue;
+          break;
+        case CorporateActionType.BONUS:
+          dto.bonusNumerator = action.ratio.numerator;
+          dto.bonusDenominator = action.ratio.denominator;
+          break;
+        case CorporateActionType.RIGHTS:
+        case CorporateActionType.DIVIDEND:
+          break;
       }
 
       await this.AM.corporateActionService.recordCorporateAction(dto);
     }
+  }
+
+  private parseNseAction(
+    subject: string,
+  ):
+    | {
+        type: CorporateActionType.SPLIT;
+        ratio: { oldFaceValue: number; newFaceValue: number };
+      }
+    | {
+        type: CorporateActionType.BONUS;
+        ratio: { numerator: number; denominator: number };
+      }
+    | { type: CorporateActionType.RIGHTS }
+    | { type: CorporateActionType.DIVIDEND }
+    | null {
+    if (subject.includes('split') || subject.includes('sub-division')) {
+      const ratio = this.parseSplitRatio(subject);
+      if (ratio) {
+        return { type: CorporateActionType.SPLIT, ratio };
+      }
+      this.logger.warn(`Could not parse split ratio from: ${subject}`);
+      return null;
+    }
+
+    if (subject.includes('bonus')) {
+      const ratio = this.parseBonusRatio(subject);
+      if (ratio) {
+        return { type: CorporateActionType.BONUS, ratio };
+      }
+      this.logger.warn(`Could not parse bonus ratio from: ${subject}`);
+      return null;
+    }
+
+    if (subject.includes('rights')) {
+      return { type: CorporateActionType.RIGHTS };
+    }
+
+    if (subject.includes('dividend')) {
+      return { type: CorporateActionType.DIVIDEND };
+    }
+
+    return null;
   }
 
   private parseNseDate(dateStr: string): string {
@@ -255,7 +309,7 @@ export class NseService {
     subject: string,
   ): { oldFaceValue: number; newFaceValue: number } | null {
     const match = subject.match(
-      /From\s+Rs\.?\s*(\d+(?:\.\d+)?)\s*\/?-?\s*(?:Per\s+Share)?\s*To\s+(?:Rs\.?\s*)?(\d+(?:\.\d+)?)\s*\/?-?\s*(?:Per\s+Share)?/i,
+      /From\s+Rs\.?\s*(\d+(?:\.\d+)?)\s*\/?-?\s*(?:Per\s+Share)?\s*To\s+(?:R[se]\.?\s*)?(\d+(?:\.\d+)?)\s*\/?-?\s*(?:Per\s+Share)?/i,
     );
     if (match) {
       return {
@@ -296,7 +350,7 @@ export class NseService {
     return {
       assetUrl: `https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv`,
       tradingURL: `https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_${day}${month}${year}.csv`,
-      corporateActionUrl: `https://www.nseindia.com/api/corporates-corporateActions?index=equities`,
+      corporateActionUrl: `https://www.nseindia.com/api/corporates-corporateActions?index=equities&from_date=${day}-${month}-${year}&to_date=${day}-${month}-${year}`,
       headers,
     };
   }

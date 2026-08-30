@@ -1,11 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AssetExchangeService } from '@stockdog/asset-management';
 import { CorporateActionType } from '@stockdog/typeorm';
-import { AssetManagement } from './asset-management.service';
-import { BseService } from './bse.service';
+import { HttpClient } from './utils/http-client';
+import { AssetManagement } from './services/asset-management.service';
+import { BseService } from './services/bse.service';
 
 describe('BseService - Corporate Action Parsing', () => {
   let bseService: BseService;
-  let mockAM: jest.Mocked<AssetManagement>;
+  let mockAM: jest.Mocked<AssetManagement> & {
+    assetExchangeService: jest.Mocked<AssetExchangeService>;
+  };
 
   const mockBseExchange = { id: 2, name: 'BSE', abbreviation: 'BSE' };
   const mockAsset = {
@@ -39,6 +43,10 @@ describe('BseService - Corporate Action Parsing', () => {
         {
           provide: AssetManagement,
           useValue: mockAM,
+        },
+        {
+          provide: HttpClient,
+          useValue: { get: jest.fn() },
         },
       ],
     }).compile();
@@ -120,7 +128,7 @@ describe('BseService - Corporate Action Parsing', () => {
       );
     });
 
-    it('should skip dividend records', async () => {
+    it('should process dividend records and call recordCorporateAction', async () => {
       const records = [
         {
           scrip_code: 540205,
@@ -138,9 +146,52 @@ describe('BseService - Corporate Action Parsing', () => {
         },
       ];
 
+      mockAM.assetExchangeService.findBySymbol.mockResolvedValue({
+        id: 3,
+        asset: { ...mockAsset, symbol: '540205', assetExchangeCode: '540205' },
+      } as any);
+
       await bseService.handleCorporateActionData(records);
 
-      expect(mockAM.corporateActionService.recordCorporateAction).not.toHaveBeenCalled();
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.DIVIDEND,
+          effectiveDate: '2026-08-25',
+        }),
+      );
+    });
+
+    it('should process rights records and call recordCorporateAction', async () => {
+      const records = [
+        {
+          scrip_code: 540206,
+          short_name: 'RIGHTS1',
+          Ex_date: '01 Feb 2026',
+          Purpose: 'Rights Issue 2:5',
+          RD_Date: '02 Feb 2026',
+          BCRD_FROM: '',
+          BCRD_TO: '',
+          ND_START_DATE: '',
+          ND_END_DATE: '',
+          payment_date: '',
+          exdate: '20260201',
+          long_name: 'Rights Test Corp',
+        },
+      ];
+
+      mockAM.assetExchangeService.findBySymbol.mockResolvedValue({
+        id: 4,
+        asset: { ...mockAsset, symbol: '540206', assetExchangeCode: '540206' },
+      } as any);
+
+      await bseService.handleCorporateActionData(records);
+
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.RIGHTS,
+          effectiveDate: '2026-02-01',
+        }),
+      );
     });
 
     it('should skip records when asset not found', async () => {
@@ -247,12 +298,24 @@ describe('BseService - Corporate Action Parsing', () => {
           id: 1,
           asset: { ...mockAsset, symbol: '544802', assetExchangeCode: '544802' },
         } as any)
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+        .mockResolvedValueOnce({
+          id: 2,
+          asset: { ...mockAsset, isin: 'INE000A01011', symbol: '540205', assetExchangeCode: '540205' },
+        } as any)
+        .mockResolvedValueOnce({
+          id: 3,
+          asset: { ...mockAsset, isin: 'INE000A01012', symbol: '544264', assetExchangeCode: '544264' },
+        } as any);
 
       await bseService.handleCorporateActionData(records);
 
-      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledTimes(1);
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledTimes(3);
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({ type: CorporateActionType.SPLIT }),
+      );
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({ type: CorporateActionType.DIVIDEND }),
+      );
     });
 
     it('should handle empty records array', async () => {

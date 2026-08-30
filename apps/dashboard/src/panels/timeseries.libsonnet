@@ -6,6 +6,8 @@ local stat = g.panel.stat;
 
 local targetsArray(targets) = if std.type(targets) == 'string' then [targets] else targets;
 
+local hideAnnotationLines = { options+: { annotations: { lines: { width: 0 }, regions: { opacity: 0 } } } };
+
 local timeseries_chart(title, targets) =
   timeseries.new(title)
   + timeseries.queryOptions.withDatasource(var.common.postgres.datasource, var.common.postgres.uid)
@@ -25,6 +27,7 @@ local timeseries_chart(title, targets) =
     id: 'joinByField',
     options: {},
   }])
+  + hideAnnotationLines
 ;
 
 {

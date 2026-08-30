@@ -15,7 +15,7 @@
         "executor": "nx:run-commands",
         "dependsOn": ["build"],
         "options": {
-            "envFile": "apps/dashboard/.env",
+            "envFile": ".env",
             "command": "grafana server --homepath=/usr/local/opt/grafana/share/grafana"
         }
     },

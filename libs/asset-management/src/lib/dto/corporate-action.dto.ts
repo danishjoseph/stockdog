@@ -8,7 +8,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
 
 export class CorporateActionDto {
@@ -25,25 +24,25 @@ export class CorporateActionDto {
 
   @IsOptional()
   @IsNumber()
-  oldFaceValue: number;
+  oldFaceValue?: number;
 
   @IsOptional()
   @IsNumber()
-  newFaceValue: number;
+  newFaceValue?: number;
 
   @IsOptional()
   @IsInt()
-  bonusNumerator: number;
+  bonusNumerator?: number;
 
   @IsOptional()
   @IsInt()
-  bonusDenominator: number;
+  bonusDenominator?: number;
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsDateString()
-  recordDate: string;
+  recordDate?: string;
 }

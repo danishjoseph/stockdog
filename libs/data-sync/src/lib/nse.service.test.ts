@@ -1,11 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Readable } from 'stream';
+import { AssetExchangeService } from '@stockdog/asset-management';
 import { CorporateActionType } from '@stockdog/typeorm';
-import { AssetManagement } from './asset-management.service';
-import { NseService } from './nse.service';
+import { AssetManagement } from './services/asset-management.service';
+import { NseService } from './services/nse.service';
 
 describe('NseService - Corporate Action Parsing', () => {
   let nseService: NseService;
-  let mockAM: jest.Mocked<AssetManagement>;
+  let mockAM: jest.Mocked<AssetManagement> & {
+    assetExchangeService: jest.Mocked<AssetExchangeService>;
+  };
 
   const mockNseExchange = { id: 1, name: 'NSE', abbreviation: 'NSE' };
   const mockAsset = {
@@ -125,7 +129,7 @@ describe('NseService - Corporate Action Parsing', () => {
       );
     });
 
-    it('should skip dividend records', async () => {
+    it('should process dividend records and call recordCorporateAction', async () => {
       const records = [
         {
           symbol: 'PFC',
@@ -145,9 +149,54 @@ describe('NseService - Corporate Action Parsing', () => {
         },
       ];
 
+      mockAM.assetExchangeService.findBySymbol.mockResolvedValue({
+        id: 3,
+        asset: { ...mockAsset, isin: 'INE134E01011', symbol: 'PFC' },
+      } as any);
+
       await nseService.handleCorporateActionData(records);
 
-      expect(mockAM.corporateActionService.recordCorporateAction).not.toHaveBeenCalled();
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.DIVIDEND,
+          effectiveDate: '2026-08-27',
+        }),
+      );
+    });
+
+    it('should process rights records and call recordCorporateAction', async () => {
+      const records = [
+        {
+          symbol: 'ABC',
+          comp: 'ABC Ltd',
+          isin: 'INE111A01011',
+          series: 'EQ',
+          faceVal: '10',
+          exDate: '10-Jan-2026',
+          recDate: '10-Jan-2026',
+          subject: 'Rights Issue 2:5',
+          bcStartDate: '-',
+          bcEndDate: '-',
+          ndStartDate: '-',
+          ndEndDate: '-',
+          ind: '-',
+          caBroadcastDate: null,
+        },
+      ];
+
+      mockAM.assetExchangeService.findBySymbol.mockResolvedValue({
+        id: 4,
+        asset: { ...mockAsset, isin: 'INE111A01011', symbol: 'ABC' },
+      } as any);
+
+      await nseService.handleCorporateActionData(records);
+
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.RIGHTS,
+          effectiveDate: '2026-01-10',
+        }),
+      );
     });
 
     it('should skip records when asset not found', async () => {
@@ -266,7 +315,22 @@ describe('NseService - Corporate Action Parsing', () => {
 
       await nseService.handleCorporateActionData(records);
 
-      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledTimes(2);
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledTimes(3);
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.SPLIT,
+        }),
+      );
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.BONUS,
+        }),
+      );
+      expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: CorporateActionType.DIVIDEND,
+        }),
+      );
     });
 
     it('should handle empty records array', async () => {
@@ -468,6 +532,115 @@ describe('NseService - Corporate Action Parsing', () => {
 
       expect(mockAM.corporateActionService.recordCorporateAction).toHaveBeenCalledWith(
         expect.objectContaining({ bonusNumerator: 4, bonusDenominator: 1 }),
+      );
+    });
+  });
+
+  describe('handleTradingData', () => {
+    const headers = [
+      'SYMBOL',
+      'SERIES',
+      'DATE1',
+      'OPEN_PRICE',
+      'HIGH_PRICE',
+      'LOW_PRICE',
+      'CLOSE_PRICE',
+      'LAST_PRICE',
+      'PREV_CLOSE',
+      'TTL_TRD_QNTY',
+      'TURNOVER_LACS',
+      'NO_OF_TRADES',
+      'DELIV_QTY',
+      'DELIV_PER',
+    ].join(',');
+
+    it('should apply the split factor to trading and delivery values once per asset', async () => {
+      const rows = [
+        'MCX,EQ,2026-01-02,100,110,90,105,104,102,10000,1000000,500,6000,50',
+        'MCX,EQ,2026-01-03,200,210,190,205,204,202,20000,2000000,1000,12000,60',
+      ];
+      const csv = Readable.from([`${headers}\n${rows.join('\n')}\n`]);
+
+      mockAM.assetExchangeService.findBySymbol.mockResolvedValue({
+        id: 1,
+        asset: mockAsset,
+      } as any);
+      mockAM.corporateActionService.computeFactorForDate = jest
+        .fn()
+        .mockResolvedValue(2);
+      mockAM.tradingDataService.saveTradingData = jest.fn();
+      mockAM.deliveryDataService.saveDeliveryData = jest.fn();
+
+      await nseService.handleTradingData(csv as any);
+
+      expect(
+        mockAM.corporateActionService.computeFactorForDate,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockAM.corporateActionService.computeFactorForDate,
+      ).toHaveBeenCalledWith(1, new Date('2026-01-02'));
+
+      expect(
+        mockAM.tradingDataService.saveTradingData,
+      ).toHaveBeenCalledTimes(2);
+      expect(mockAM.tradingDataService.saveTradingData).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          date: new Date('2026-01-02'),
+          open: 50,
+          high: 55,
+          low: 45,
+          close: 52.5,
+          lastPrice: 52,
+          previousClose: 51,
+          volume: 20000,
+          turnover: 500000,
+          totalTrades: 500,
+        }),
+      );
+      expect(
+        mockAM.deliveryDataService.saveDeliveryData,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        mockAM.deliveryDataService.saveDeliveryData,
+      ).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          date: new Date('2026-01-02'),
+          deliveryQuantity: 12000,
+          deliveryPercentage: 50,
+        }),
+      );
+    });
+
+    it('should not adjust values when no split factor exists', async () => {
+      const rows = ['MCX,EQ,2026-01-02,100,110,90,105,104,102,10000,1000000,500,6000,50'];
+      const csv = Readable.from([`${headers}\n${rows.join('\n')}\n`]);
+
+      mockAM.assetExchangeService.findBySymbol.mockResolvedValue({
+        id: 1,
+        asset: mockAsset,
+      } as any);
+      mockAM.corporateActionService.computeFactorForDate = jest
+        .fn()
+        .mockResolvedValue(1);
+      mockAM.tradingDataService.saveTradingData = jest.fn();
+      mockAM.deliveryDataService.saveDeliveryData = jest.fn();
+
+      await nseService.handleTradingData(csv as any);
+
+      expect(mockAM.tradingDataService.saveTradingData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          open: 100,
+          close: 105,
+          lastPrice: 104,
+          previousClose: 102,
+          volume: 10000,
+          turnover: 1000000,
+        }),
+      );
+      expect(mockAM.deliveryDataService.saveDeliveryData).toHaveBeenCalledWith(
+        expect.objectContaining({ deliveryQuantity: 6000 }),
       );
     });
   });
