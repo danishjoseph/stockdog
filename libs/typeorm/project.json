@@ -10,7 +10,12 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/typeorm/cli.js migration:generate -d {projectRoot}/src/lib/data-source.ts -p {projectRoot}/src/lib/migrations/{args.name}",
-        "envFile": ".env"
+      }
+    },
+    "migration-create": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register --project {projectRoot}/tsconfig.json ./node_modules/typeorm/cli.js migration:create {projectRoot}/src/lib/migrations/{args.name}",
       }
     },
     "migration-run": {

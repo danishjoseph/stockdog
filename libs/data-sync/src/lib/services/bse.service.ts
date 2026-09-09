@@ -223,7 +223,7 @@ export class BseService {
         : lastPrice / factor;
       tradingDataDto.previousClose = previousClose / factor;
       tradingDataDto.volume = Math.round(volume * factor);
-      tradingDataDto.turnover = turnover / factor;
+      tradingDataDto.turnover = turnover / factor / 100000;
       tradingDataDto.totalTrades = parseFloat(
         record[TRADE_DATA_CSV_HEADERS.TOTAL_TRADES],
       );
