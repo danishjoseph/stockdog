@@ -6,6 +6,10 @@ export class AssetDto {
   @IsString()
   isin: string;
 
+  @IsOptional()
+  @IsNumber()
+  previousAssetId?: number;
+
   @IsNotEmpty()
   @IsString()
   symbol: string;

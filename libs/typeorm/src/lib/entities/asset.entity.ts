@@ -1,5 +1,13 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { AssetExchange } from './asset-exchange.entity';
+import { CorporateAction } from './corporate-action.entity';
 
 enum AssetType {
   EQUITY = 'EQUITY',
@@ -13,6 +21,13 @@ export class Asset {
 
   @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
   isin: string;
+
+  @Column({ type: 'int', nullable: true })
+  previousAssetId: number;
+
+  @ManyToOne(() => Asset, { nullable: true })
+  @JoinColumn({ name: 'previousAssetId' })
+  previousAsset?: Asset;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   symbol: string;
@@ -33,5 +48,8 @@ export class Asset {
   sector: string;
 
   @OneToMany(() => AssetExchange, (assetExchange) => assetExchange.asset)
-  assetExchanges: AssetExchange[];
+  assetExchanges?: AssetExchange[];
+
+  @OneToMany(() => CorporateAction, (corporateAction) => corporateAction.asset)
+  corporateActions?: CorporateAction[];
 }

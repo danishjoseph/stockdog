@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Asset,
   AssetExchange,
+  CorporateAction,
   DeliveryData,
   Exchange,
   TradingData,
@@ -10,6 +11,7 @@ import {
 import {
   AssetExchangeRepository,
   AssetRepository,
+  CorporateActionRepository,
   DeliveryDataRepository,
   ExchangeRepository,
   TradingDataRepository,
@@ -17,6 +19,7 @@ import {
 import {
   AssetExchangeService,
   AssetService,
+  CorporateActionService,
   DeliveryDataService,
   TradingDataService,
 } from './services';
@@ -28,6 +31,7 @@ import { ExchangeService } from './services/exchange.service';
       Asset,
       Exchange,
       AssetExchange,
+      CorporateAction,
       TradingData,
       DeliveryData,
     ]),
@@ -37,10 +41,12 @@ import { ExchangeService } from './services/exchange.service';
     AssetRepository,
     ExchangeRepository,
     AssetExchangeRepository,
+    CorporateActionRepository,
     TradingDataRepository,
     DeliveryDataRepository,
     ExchangeService,
     AssetService,
+    CorporateActionService,
     DeliveryDataService,
     TradingDataService,
     AssetExchangeService,
@@ -48,6 +54,7 @@ import { ExchangeService } from './services/exchange.service';
   exports: [
     ExchangeService,
     AssetService,
+    CorporateActionService,
     DeliveryDataService,
     TradingDataService,
     AssetExchangeService,

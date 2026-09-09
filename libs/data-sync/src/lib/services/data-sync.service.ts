@@ -47,6 +47,8 @@ export class DataSyncService implements OnModuleInit {
       await this.handleBSEDataSync(new Date(dateStr));
       await this.handleNSEDataSync(new Date(dateStr));
     }
+
+    await this.handleCorporateActionSync(currentDate);
   }
 
   async handleBSEDataSync(date: Date) {
@@ -81,5 +83,56 @@ export class DataSyncService implements OnModuleInit {
     const end = performance.now();
     const timeTaken = end - start;
     this.logger.log(`NSE Data Sync Finished. Time taken: ${timeTaken} ms`);
+  }
+
+  async handleCorporateActionSync(date: Date) {
+    const start = performance.now();
+    this.logger.log('Corporate Action Sync Started');
+
+    try {
+      await this.handleNSECorporateActions(date);
+    } catch (error) {
+      this.logger.error(`NSE Corporate Action sync failed: ${error.message}`);
+    }
+
+    try {
+      await this.handleBSECorporateActions(date);
+    } catch (error) {
+      this.logger.error(`BSE Corporate Action sync failed: ${error.message}`);
+    }
+
+    const end = performance.now();
+    const timeTaken = end - start;
+    this.logger.log(
+      `Corporate Action Sync Finished. Time taken: ${timeTaken} ms`,
+    );
+  }
+
+  private async handleNSECorporateActions(date: Date) {
+    const { corporateActionUrl, headers } =
+      this.nseService.generateFileUrls(date);
+
+    const data = await this.httpClient.getJson<any[]>(
+      corporateActionUrl,
+      headers,
+    );
+
+    if (Array.isArray(data)) {
+      await this.nseService.handleCorporateActionData(data);
+    }
+  }
+
+  private async handleBSECorporateActions(date: Date) {
+    const { corporateActionUrl, headers } =
+      this.bseService.generateFileUrls(date);
+
+    const data = await this.httpClient.getJson<any[]>(
+      corporateActionUrl,
+      headers,
+    );
+
+    if (Array.isArray(data)) {
+      await this.bseService.handleCorporateActionData(data);
+    }
   }
 }
